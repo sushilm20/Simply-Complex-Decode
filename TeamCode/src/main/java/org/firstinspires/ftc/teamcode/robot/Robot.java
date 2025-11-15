@@ -15,6 +15,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.constants.FConstants;
 import org.firstinspires.ftc.teamcode.pedroPathing.constants.LConstants;
+import org.firstinspires.ftc.teamcode.robot.subsystems.Blocker;
 import org.firstinspires.ftc.teamcode.robot.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.robot.subsystems.Kicker;
 import org.firstinspires.ftc.teamcode.robot.subsystems.Shooter;
@@ -43,6 +44,7 @@ public class Robot {
     public Shooter shooter;
     public Turret turret;
     public Kicker kicker;
+    public Blocker blocker;
 
     public Robot (HardwareMap hm, boolean isAuto) {
         auto = isAuto;
