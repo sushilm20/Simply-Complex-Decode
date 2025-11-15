@@ -17,7 +17,6 @@ public class TwoServoTester extends LinearOpMode {
 
         Servo a = hardwareMap.get(Servo.class, regServo);
         Servo b = hardwareMap.get(Servo.class, revServo);
-        b.setDirection(Servo.Direction.REVERSE);
         waitForStart();
         while(opModeIsActive()){
             a.setPosition(position);

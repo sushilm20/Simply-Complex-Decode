@@ -29,12 +29,11 @@ import org.firstinspires.ftc.teamcode.utils.MyTelem;
 
 @TeleOp(name = "Teleop Red", group = "Comp")
 public class TeleopRed extends LinearOpMode {
-    Pose currentPose = AutoConstants.finalPose;
-
     @Override
     public void runOpMode() {
         MyTelem.init(telemetry);
         Robot robot = new Robot(hardwareMap, false, "BLUE");
+        robot.follower.setStartingPose(AutoConstants.finalPose);
         GamepadEx gp1 = new GamepadEx(gamepad1);
         GamepadEx gp2 = new GamepadEx(gamepad2);
 
@@ -64,9 +63,8 @@ public class TeleopRed extends LinearOpMode {
                         new BlockerCommand(robot, Blocker.BlockerState.BLOCKED)
                 ));
 
-        gp2.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenPressed(new TurretCommand(robot, Turret.TurretState.FRONT));
-        gp2.getGamepadButton(GamepadKeys.Button.DPAD_DOWN).whenPressed(new TurretCommand(robot, Turret.TurretState.BACK));
-
+        gp2.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenReleased(new TurretCommand(robot, Turret.TurretState.FRONT));
+        gp2.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenReleased(new TurretCommand(robot, Turret.TurretState.FRONT));
 
         gp2.getGamepadButton(GamepadKeys.Button.Y).whenPressed(
                 new TransferCommand(robot, true)

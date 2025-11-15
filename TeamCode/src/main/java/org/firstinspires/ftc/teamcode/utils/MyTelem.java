@@ -16,6 +16,12 @@ public class MyTelem {
     public static void addData(String key, Object value){
         tel.addData(key, value);
     }
+    public static void addLine(String key) {
+        tel.addLine(key);
+    }
+    public static void addLine() {
+        addLine("");
+    }
     public static void update(){
         tel.update();
     }

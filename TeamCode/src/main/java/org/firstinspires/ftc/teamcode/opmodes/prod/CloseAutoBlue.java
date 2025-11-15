@@ -128,7 +128,7 @@ public class CloseAutoBlue extends LinearOpMode {
             Drawing.drawPoseHistory(dashboardPoseTracker, "#4CAF50");
             Drawing.drawRobot(robot.follower.poseUpdater.getPose(), "#4CAF50");
             Drawing.sendPacket();
-            AutoConstants.finalPose = robot.follower.getPose();
+            Robot.currentPose = robot.follower.getPose();
         }
         robot.stop();
     }

@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.opmodes.testers;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -19,12 +18,15 @@ public class ShooterTuner extends LinearOpMode {
         robot.shooter.state = Shooter.ShooterState.TESTING;
         waitForStart();
         while (opModeIsActive()) {
-//            robot.shooter.setPIDPower(ShooterConstants.tuningTestingRPM);
-            MyTelem.addData("Shooter Target RPM", ShooterConstants.tuningTestingRPM);
-            MyTelem.addData("Shooter At RPM", robot.shooter.atRPM());
+            MyTelem.addLine("--- SHOOTER ---");
+            MyTelem.addData("Target RPM", ShooterConstants.tuningTestingRPM);
+            MyTelem.addData("At RPM", robot.shooter.shooterAtRPM());
+            MyTelem.addLine();
+            MyTelem.addLine("--- COUNTER ROLLER ---");
+            MyTelem.addData("Target RPM", ShooterConstants.tuningTestingCounterRollerRPM);
+            MyTelem.addData("At RPM", robot.shooter.counterRollerAtRPM());
             robot.update();
         }
-
         robot.stop();
     }
 }
