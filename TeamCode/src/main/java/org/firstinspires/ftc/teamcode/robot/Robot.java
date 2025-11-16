@@ -50,7 +50,7 @@ public class  Robot {
     public Kicker kicker;
     public Blocker blocker;
 
-    public static Pose currentPose = CloseAutoBlue.autoEndPose;
+    public static Pose currentPose;
     public boolean holding;
     public static boolean red;
     public static double voltage = 12;
@@ -61,7 +61,6 @@ public class  Robot {
         red = color.equals("RED");
     }
     public Robot (HardwareMap hm, boolean isAuto) {
-        MyTelem.addData("TeleOp Starting Pose Before", currentPose);
         timer = new ElapsedTime();
         timer.reset();
         voltageSensor = hm.voltageSensor.iterator().next();
@@ -81,8 +80,6 @@ public class  Robot {
         counterRoller.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         topShooterMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         counterRoller.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        //ie. name = hm.get(Servo.class, "...");
-
         if(!auto){
             MyTelem.addData("TeleOp Starting Pose", currentPose);
             follower.setStartingPose(currentPose);
@@ -146,16 +143,19 @@ public class  Robot {
             previousVoltageTime = timer.time(TimeUnit.MILLISECONDS);
             voltage = voltageSensor.getVoltage();
         }
+
+        MyTelem.addData("distance from goal", getDistanceFromGoal());
         MyTelem.addData("Current Pose", currentPose);
         MyTelem.update();
     }
 
     public void stop(){
+        Pose pose = follower.getPose();
         CommandScheduler.getInstance().reset();
-
         for(LynxModule hub : hubs){
             hub.clearBulkCache();
         }
+        Robot.currentPose = pose;
     }
 
     public void holding(){
@@ -169,7 +169,15 @@ public class  Robot {
         follower.setMaxPower(1);
         holding = false;
     }
+    public static double getDistanceFromGoal(){
+        Pose pose = Robot.currentPose;
+        Pose goalPose = Robot.getGoalPose();
 
+        double dX = pose.getX() - goalPose.getX();
+        double dY = pose.getY() - goalPose.getY();
+
+        return Math.hypot(dX, dY);
+    }
     public static Pose getGoalPose(){
         if(red){
             return new Pose(144, 144);

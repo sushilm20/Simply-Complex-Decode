@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.robot.subsystems;
 import com.acmerobotics.dashboard.config.Config;
 import com.arcrobotics.ftclib.command.Subsystem;
 import com.arcrobotics.ftclib.controller.PIDController;
+import com.pedropathing.localization.Pose;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
@@ -58,7 +59,31 @@ public class Shooter implements Subsystem {
                 break;
             case CLOSEAUTO:
                 setShooterPIDPower(ShooterConstants.closeShootAutoRPM);
+                break;
+            case MATH:
+                double rpm = getRPM();
+                MyTelem.addData("Shooter RPM", rpm);
+                setShooterPIDPower(rpm);
+                setCounterRollerPIDPower(2.38 * rpm);
+                break;
         }
+    }
+
+    public double getRPM(){
+        double distance = Robot.getDistanceFromGoal();
+        //Points:
+        //92.09: 1620, 3855.6
+        //84.7: 1600, 3808
+        //100.6: 1680, 3988.4
+        //65.55: 1380, 3284.4
+        //45.35: 1350, 3213
+        //145.88: 2225, 5355
+        //156.95: 2280, 5426.5
+        //141.15: 2180, 5188.4
+        //y=0.0385207x^{2}+1.30815x+1181.56736
+        double speed = 0.0385207 * distance * distance + 1.30815 * distance + 1181.56736;
+        MyTelem.addData("speed", speed);
+        return speed;
     }
 
     public void setHood(double pos){
@@ -75,10 +100,7 @@ public class Shooter implements Subsystem {
         double power = shooterRPMPID.calculate(currentRPM, targetRPM);
         power += (targetRPM > 0) ? (ShooterConstants.kf * (targetRPM / ShooterConstants.MAX_RPM)) : 0.0;
         power = Range.clip(power, 0, 1);
-        double currentVoltage = Robot.voltage;
-        MyTelem.addData("Power without voltage modifier", power);
-        MyTelem.addData("Power with voltage modifier", power * 12.0 / currentVoltage);
-        shooterMotor.setPower(power * 12.0 / currentVoltage);
+        double currentVoltage = Robot.voltage;shooterMotor.setPower(power * 12.0 / currentVoltage);
     }
 
     public double CRTicksPerSecToRPM(double tps){
@@ -127,6 +149,6 @@ public class Shooter implements Subsystem {
     }
 
     public enum ShooterState {
-        CLOSE, FAR, STOP, TESTING, CLOSEAUTO
+        CLOSE, FAR, STOP, TESTING, CLOSEAUTO, MATH
     }
 }

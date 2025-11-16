@@ -67,7 +67,7 @@ public class TeleopRed extends LinearOpMode {
         gp2.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenReleased(new TurretCommand(robot, Turret.TurretState.FRONT));
 
         gp2.getGamepadButton(GamepadKeys.Button.Y).whenPressed(
-                new TransferCommand(robot, true)
+                new TransferCommand(robot, false, true)
         );
 
         gp2.getGamepadButton(GamepadKeys.Button.Y).whenReleased(
@@ -75,7 +75,7 @@ public class TeleopRed extends LinearOpMode {
         );
 
         gp2.getGamepadButton(GamepadKeys.Button.X).whenPressed(
-                new TransferCommand(robot, false)
+                new TransferCommand(robot, false, true)
         );
         gp2.getGamepadButton(GamepadKeys.Button.X).whenReleased(
                 new TransferCancelCommand(robot)
