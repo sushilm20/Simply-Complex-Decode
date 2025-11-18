@@ -20,6 +20,9 @@ public class TransferCommand extends SequentialCommandGroup {
     public static int kickerWait = 0;
     public static int intakeWait = 1800;
     public TransferCommand(Robot robot, boolean shortSide, boolean math){
+        if(robot.auto){
+            intakeWait += 500;
+        }
         if (shortSide && !math) {
             addCommands(
                     new ShooterCommand(robot, Shooter.ShooterState.CLOSE),

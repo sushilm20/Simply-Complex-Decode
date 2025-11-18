@@ -29,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 
 @Config
 public class  Robot {
-    boolean auto = false;
+    public boolean auto = false;
 
     public Follower follower;
 
