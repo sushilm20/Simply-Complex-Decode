@@ -10,6 +10,8 @@ public class CloseSideAutoPoseData {
     public static final Pose FIRST_INTAKE   = new Pose(AutoConstants.firstIntakeX, 84.000);
     public static final Pose MID2_CURVE     = new Pose(66, 52);           // path4 control point
     public static final Pose SECOND_INTAKE  = new Pose(AutoConstants.secondIntakeX, 60.000);
+    public static final Pose LEVER = new Pose(16.25, 68.84);
+    public static final Pose LEVER_CONTROL = new Pose(68.64, 57.46);
     public static final Pose MID3_CURVE     = new Pose(87, 31);           // path6 control point
     public static final Pose FINAL_INTAKE   = new Pose(AutoConstants.secondIntakeX, 36.000);
     public static final Pose TRAILER_FINISH = new Pose(13.000, 36.000);   // for last blue path
