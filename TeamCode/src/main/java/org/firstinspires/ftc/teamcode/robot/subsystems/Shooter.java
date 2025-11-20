@@ -55,7 +55,7 @@ public class Shooter implements Subsystem {
                 break;
             case TESTING:
                 setShooterPIDPower(ShooterConstants.tuningTestingRPM);
-                setCounterRollerPIDPower(ShooterConstants.tuningTestingCounterRollerRPM);
+                setCounterRollerPIDPower(ShooterConstants.tuningTestingRPM * ShooterConstants.shootingMultiplier);
                 break;
             case CLOSEAUTO:
                 setShooterPIDPower(ShooterConstants.closeShootAutoRPM);
@@ -64,7 +64,7 @@ public class Shooter implements Subsystem {
                 double rpm = getRPM();
                 MyTelem.addData("Shooter RPM", rpm);
                 setShooterPIDPower(rpm);
-                setCounterRollerPIDPower(2.38 * rpm);
+                setCounterRollerPIDPower(ShooterConstants.shootingMultiplier * rpm);
                 break;
         }
     }
@@ -115,14 +115,11 @@ public class Shooter implements Subsystem {
     public void setCounterRollerPIDPower(double targetRPM){
         double CRVelocity = Math.abs(counterRoller.getVelocity());
         double currentRPM = (CRTicksPerSecToRPM(CRVelocity));
-        MyTelem.addData("Counter roller Current RPM", currentRPM);
         counterRPMPID.setPID(ShooterConstants.CRkp, ShooterConstants.CRki, ShooterConstants.CRkd);
         double power = counterRPMPID.calculate(currentRPM, targetRPM);
         power += (targetRPM > 0) ? (ShooterConstants.CRkf * (targetRPM / ShooterConstants.MAX_RPM)) : 0.0;
         power = Range.clip(power, 0, 1);
         double currentVoltage = Robot.voltage;
-        MyTelem.addData("Power without voltage modifier", power);
-        MyTelem.addData("Power with voltage modifier", power * 12.0 / currentVoltage);
         counterRoller.setPower(power * 12.0 / currentVoltage);
     }
 
@@ -141,10 +138,6 @@ public class Shooter implements Subsystem {
     public ShooterState getState(){
         return state;
     }
-
-//    public enum ShooterState{
-//        SHOOTING, STOP
-//    }
 
     @Override
     public void periodic() {

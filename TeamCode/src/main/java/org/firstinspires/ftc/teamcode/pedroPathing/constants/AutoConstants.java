@@ -14,5 +14,7 @@ public class AutoConstants {
     public static double firstIntakeX = 16;
     public static double secondIntakeX = 10.000;
     public static Pose finalPose = new Pose(0,0,0);
-    public static int intakeBallWait = 300;
+    public static int intakeBallWait = 200;
+    public static double leverPoseX = 33.34;
+    public static double leverPoseY = 63.57;
 }

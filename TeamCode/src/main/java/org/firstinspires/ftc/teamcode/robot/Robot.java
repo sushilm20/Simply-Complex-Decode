@@ -37,7 +37,7 @@ public class  Robot {
     // hardware stuff, servos, motors, etc.
     DcMotorEx backLeftMotor, backRightMotor, frontLeftMotor, frontRightMotor;
     DcMotorEx topShooterMotor, /*bottomShooterMotor,*/ counterRoller;
-    DcMotorEx intakeMotor, intakeMotor2;
+    DcMotorEx intakeMotor2;
     Servo hoodServo;
     Servo turretLeftServo, turretRightServo, blockerServo;
     CRServo kickerRightServo, kickerLeftServo;
@@ -71,7 +71,7 @@ public class  Robot {
         follower = new Follower(hm, FConstants.class, LConstants.class);
         topShooterMotor = hm.get(DcMotorEx.class, "topShooter");
         counterRoller = hm.get(DcMotorEx.class, "counterRoller");
-        intakeMotor = hm.get(DcMotorEx.class, "intake");
+//        intakeMotor = hm.get(DcMotorEx.class, "intake");
         intakeMotor2 = hm.get(DcMotorEx.class, "intake2");
         turretLeftServo = hm.get(Servo.class, "turretLeftServo");
         turretRightServo = hm.get(Servo.class, "turretRightServo");
@@ -103,7 +103,7 @@ public class  Robot {
         //ie. zeropowermode, etc.
 
         //declare all subsystem objects
-        intake = new Intake(intakeMotor, intakeMotor2);
+        intake = new Intake(intakeMotor2);
         shooter = new Shooter(topShooterMotor, counterRoller, hoodServo);
         turret = new Turret(turretLeftServo, turretRightServo);
         kicker = new Kicker(kickerRightServo, kickerLeftServo);

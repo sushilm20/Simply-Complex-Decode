@@ -78,6 +78,7 @@ public class CloseSideAuto extends OpMode {
 
         paths = new CloseSideAutoPaths(robot.follower, color);
         auto = new SequentialCommandGroup(
+                new ShooterCommand(robot, Shooter.ShooterState.MATH),
                 new IntakeCommand(robot, Intake.IntakeState.ON),
                 new FollowPathCommand(robot.follower, paths.Path1),
                 new ShooterCommand(robot, Shooter.ShooterState.MATH),
@@ -89,8 +90,8 @@ public class CloseSideAuto extends OpMode {
                 shootThree,
                 new FollowPathCommand(robot.follower, paths.Path4),
                 new WaitCommand(intakeBallWait),
-                new FollowPathCommand(robot.follower, paths.LeverPath),
-                new WaitCommand(500),
+//                new FollowPathCommand(robot.follower, paths.LeverPath),
+//                new WaitCommand(1250),
                 new FollowPathCommand(robot.follower, paths.Path5),
                 new ShooterCommand(robot, Shooter.ShooterState.MATH),
                 shootThree,
@@ -166,6 +167,7 @@ public class CloseSideAuto extends OpMode {
             Path1 = follower.pathBuilder()
                     .addPath(new BezierLine(startPose, shootingPose))
                     .setLinearHeadingInterpolation(Math.toRadians(startHeading), Math.toRadians(shootingHeading))
+                    .setZeroPowerAccelerationMultiplier(3)
                     .build();
             Path2 = follower.pathBuilder()
                     .addPath(new BezierCurve(shootingPose, mid1Curve, firstIntake))
@@ -184,10 +186,9 @@ public class CloseSideAuto extends OpMode {
             LeverPath = follower.pathBuilder()
                     .addPath(new BezierCurve(secondIntake, leverControl, leverPose))
                     .setLinearHeadingInterpolation(Math.toRadians(heading180), Math.toRadians(heading180))
-                    .setZeroPowerAccelerationMultiplier(2)
                     .build();
             Path5 = follower.pathBuilder()
-                    .addPath(new BezierLine(leverPose, shootingPose))
+                    .addPath(new BezierLine(secondIntake, shootingPose))
                     .setLinearHeadingInterpolation(Math.toRadians(heading180), Math.toRadians(shootingHeading))
                     .build();
             Path6 = follower.pathBuilder()

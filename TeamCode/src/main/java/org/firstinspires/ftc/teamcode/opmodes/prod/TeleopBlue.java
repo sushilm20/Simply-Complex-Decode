@@ -67,7 +67,7 @@ public class TeleopBlue extends LinearOpMode {
         gp2.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenPressed(new TurretCommand(robot, Turret.TurretState.MATH));
         gp2.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenReleased(new TurretCommand(robot, Turret.TurretState.FRONT));
         gp2.getGamepadButton(GamepadKeys.Button.Y).whenPressed(
-                new TransferCommand(robot, true, false)
+                new TransferCommand(robot, true, true)
         );
 
         gp2.getGamepadButton(GamepadKeys.Button.Y).whenReleased(
@@ -75,7 +75,7 @@ public class TeleopBlue extends LinearOpMode {
         );
 
         gp2.getGamepadButton(GamepadKeys.Button.X).whenPressed(
-                new TransferCommand(robot, true, false)
+                new TransferCommand(robot, true, true)
         );
         gp2.getGamepadButton(GamepadKeys.Button.X).whenReleased(
                 new TransferCancelCommand(robot)
