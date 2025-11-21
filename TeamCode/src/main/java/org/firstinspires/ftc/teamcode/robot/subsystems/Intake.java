@@ -7,10 +7,12 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import org.firstinspires.ftc.teamcode.utils.constants.IntakeConstants;
 
 public class Intake implements Subsystem {
-    DcMotorEx intakeMotor2;
+    DcMotorEx intakeMotor, intakeMotor2;
     public IntakeState state;
-    public Intake(DcMotorEx intakeMotor2){
+    public Intake(DcMotorEx intakeMotor, DcMotorEx intakeMotor2){
         this.intakeMotor2 = intakeMotor2;
+        this.intakeMotor = intakeMotor;
+        intakeMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         intakeMotor2.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
@@ -19,15 +21,19 @@ public class Intake implements Subsystem {
         switch (state){
             case ON:
                 intakeMotor2.setPower(IntakeConstants.forwardPower);
+                intakeMotor.setPower(IntakeConstants.forwardPower);
+                break;
+            case SOLOFRONT:
+                intakeMotor.setPower(IntakeConstants.forwardPower);
+                intakeMotor2.setPower(IntakeConstants.offPower);
                 break;
             case OFF:
                 intakeMotor2.setPower(IntakeConstants.offPower);
+                intakeMotor.setPower(IntakeConstants.offPower);
                 break;
             case REV:
+                intakeMotor.setPower(IntakeConstants.backwardPower);
                 intakeMotor2.setPower(IntakeConstants.backwardPower);
-                break;
-            default:
-                intakeMotor2.setPower(0);
                 break;
         }
     }
@@ -36,7 +42,7 @@ public class Intake implements Subsystem {
         return state;
     }
     public enum IntakeState{
-        ON, OFF, REV;
+        ON, OFF, REV, SOLOFRONT;
     }
 
 }
