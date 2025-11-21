@@ -43,7 +43,7 @@ public class Shooter implements Subsystem {
         switch (state) {
             case CLOSE:
                 setShooterPIDPower(ShooterConstants.closeShootRPM);
-                setCounterRollerPIDPower(ShooterConstants.closeShootCounterRollerRPM);
+                setCounterRollerPIDPower(ShooterConstants.closeShootRPM * ShooterConstants.shootingMultiplier);
                 break;
             case FAR:
                 setShooterPIDPower(ShooterConstants.farShootRPM);
@@ -82,11 +82,22 @@ public class Shooter implements Subsystem {
         //141.15: 2180, 5188.4
         //y=0.0385207x^{2}+1.30815x+1181.56736
 
+       //kp=6 kf = 0.6
+        //crkp=2 crkf=0.3
+        //83.62, 2300 3
+        //95.97, 2720 3
+        //58.54, 1850 3
+        //113.30, 2730 3
+        //144.56, 3240 31
+        //163.64, 3450 3
+        //100.12, 2540 3
+        //77.14, 2100 3
+
 
         //84.96: 1700, 4046
         //96.09: 1750,
 
-        double speed = 0.0385207 * distance * distance + 1.30815 * distance + 1181.56736;
+        double speed = -0.0472686 * distance * distance + 25.9231 * distance + 500;
         MyTelem.addData("speed", speed);
         return speed;
     }
@@ -113,6 +124,7 @@ public class Shooter implements Subsystem {
     }
 
     public void setCounterRollerPIDPower(double targetRPM){
+        MyTelem.addData("counter roller rpm", targetRPM);
         double CRVelocity = Math.abs(counterRoller.getVelocity());
         double currentRPM = (CRTicksPerSecToRPM(CRVelocity));
         counterRPMPID.setPID(ShooterConstants.CRkp, ShooterConstants.CRki, ShooterConstants.CRkd);
