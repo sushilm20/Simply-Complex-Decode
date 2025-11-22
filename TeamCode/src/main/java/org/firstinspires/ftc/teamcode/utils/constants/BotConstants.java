@@ -5,5 +5,5 @@ import com.acmerobotics.dashboard.config.Config;
 public class BotConstants {
     public static double goalX = 144;
     public static double goalY = 144;
-    public static boolean isMath = false;
+    public static boolean isMath = true;
 }
