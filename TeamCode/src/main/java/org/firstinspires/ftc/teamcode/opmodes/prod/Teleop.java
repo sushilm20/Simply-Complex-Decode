@@ -26,6 +26,7 @@ import org.firstinspires.ftc.teamcode.robot.subsystems.Kicker;
 import org.firstinspires.ftc.teamcode.robot.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.robot.subsystems.Turret;
 import org.firstinspires.ftc.teamcode.utils.MyTelem;
+import org.firstinspires.ftc.teamcode.utils.constants.BotConstants;
 
 public class Teleop extends LinearOpMode {
     public String color = "";
@@ -72,7 +73,7 @@ public class Teleop extends LinearOpMode {
         gp2.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenReleased(new TurretCommand(robot, Turret.TurretState.FRONT));
 
         gp2.getGamepadButton(GamepadKeys.Button.Y).whenPressed(
-                new TransferCommand(robot, false, true)
+                new TransferCommand(robot, BotConstants.isMath ? TransferCommand.TransferCommandState.MATH : TransferCommand.TransferCommandState.CLOSE)
         );
 
         gp2.getGamepadButton(GamepadKeys.Button.Y).whenReleased(
@@ -80,7 +81,7 @@ public class Teleop extends LinearOpMode {
         );
 
         gp2.getGamepadButton(GamepadKeys.Button.X).whenPressed(
-                new TransferCommand(robot, false, true)
+                new TransferCommand(robot, BotConstants.isMath ? TransferCommand.TransferCommandState.MATH : TransferCommand.TransferCommandState.FAR)
         );
         gp2.getGamepadButton(GamepadKeys.Button.X).whenReleased(
                 new TransferCancelCommand(robot)

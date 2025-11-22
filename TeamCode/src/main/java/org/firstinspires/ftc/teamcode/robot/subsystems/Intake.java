@@ -20,20 +20,24 @@ public class Intake implements Subsystem {
         this.state = state;
         switch (state){
             case ON:
-                intakeMotor2.setPower(IntakeConstants.forwardPower);
                 intakeMotor.setPower(IntakeConstants.forwardPower);
+                intakeMotor2.setPower(IntakeConstants.forwardPower);
                 break;
             case SOLOFRONT:
                 intakeMotor.setPower(IntakeConstants.forwardPower);
                 intakeMotor2.setPower(IntakeConstants.offPower);
                 break;
             case OFF:
-                intakeMotor2.setPower(IntakeConstants.offPower);
                 intakeMotor.setPower(IntakeConstants.offPower);
+                intakeMotor2.setPower(IntakeConstants.offPower);
                 break;
             case REV:
                 intakeMotor.setPower(IntakeConstants.backwardPower);
                 intakeMotor2.setPower(IntakeConstants.backwardPower);
+                break;
+            case SOLOBACK:
+                intakeMotor.setPower(IntakeConstants.offPower);
+                intakeMotor2.setPower(IntakeConstants.forwardPower);
                 break;
         }
     }
@@ -42,7 +46,7 @@ public class Intake implements Subsystem {
         return state;
     }
     public enum IntakeState{
-        ON, OFF, REV, SOLOFRONT;
+        ON, OFF, REV, SOLOFRONT, SOLOBACK;
     }
 
 }

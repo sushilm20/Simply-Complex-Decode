@@ -4,6 +4,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.arcrobotics.ftclib.command.Subsystem;
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.pedropathing.localization.Pose;
+import com.pedropathing.pathgen.Vector;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
@@ -47,7 +48,7 @@ public class Shooter implements Subsystem {
                 break;
             case FAR:
                 setShooterPIDPower(ShooterConstants.farShootRPM);
-                setCounterRollerPIDPower(ShooterConstants.farShootCounterRollerRPM);
+                setCounterRollerPIDPower(ShooterConstants.farShootRPM * ShooterConstants.shootingMultiplier);
                 break;
             case STOP:
                 setShooterPIDPower(0);
@@ -56,9 +57,6 @@ public class Shooter implements Subsystem {
             case TESTING:
                 setShooterPIDPower(ShooterConstants.tuningTestingRPM);
                 setCounterRollerPIDPower(ShooterConstants.tuningTestingRPM * ShooterConstants.shootingMultiplier);
-                break;
-            case CLOSEAUTO:
-                setShooterPIDPower(ShooterConstants.closeShootAutoRPM);
                 break;
             case MATH:
                 double rpm = getRPM();
@@ -70,6 +68,9 @@ public class Shooter implements Subsystem {
     }
 
     public double getRPM(){
+        Vector velocity = Robot.velocity;
+        Pose newPose = Robot.currentPose;
+
         double distance = Robot.getDistanceFromGoal();
         //Points:
         //92.09: 1620, 3855.6
@@ -96,7 +97,6 @@ public class Shooter implements Subsystem {
 
         //84.96: 1700, 4046
         //96.09: 1750,
-
         double speed = -0.0472686 * distance * distance + 25.9231 * distance + 500;
         MyTelem.addData("speed", speed);
         return speed;
@@ -159,6 +159,6 @@ public class Shooter implements Subsystem {
     }
 
     public enum ShooterState {
-        CLOSE, FAR, STOP, TESTING, CLOSEAUTO, MATH
+        CLOSE, FAR, STOP, TESTING, MATH
     }
 }

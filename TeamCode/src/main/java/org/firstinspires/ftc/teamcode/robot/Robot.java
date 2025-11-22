@@ -7,6 +7,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.arcrobotics.ftclib.command.CommandScheduler;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.localization.Pose;
+import com.pedropathing.pathgen.Vector;
 import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -28,6 +29,8 @@ import org.firstinspires.ftc.teamcode.robot.subsystems.Kicker;
 import org.firstinspires.ftc.teamcode.robot.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.robot.subsystems.Turret;
 import org.firstinspires.ftc.teamcode.utils.MyTelem;
+import org.firstinspires.ftc.teamcode.utils.constants.BotConstants;
+import org.firstinspires.ftc.teamcode.utils.constants.TurretConstants;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -37,6 +40,7 @@ public class  Robot {
     public boolean auto = false;
 
     public Follower follower;
+    public static Vector velocity;
 
     // hardware stuff, servos, motors, etc.
     DcMotorEx backLeftMotor, backRightMotor, frontLeftMotor, frontRightMotor;
@@ -72,6 +76,8 @@ public class  Robot {
         previousVoltageTime = timer.time(TimeUnit.MILLISECONDS);
         CommandScheduler.getInstance().reset();
         auto = isAuto;
+        BotConstants.isMath = true;
+        TurretConstants.OFFSET = 0.5;
         follower = new Follower(hm, FConstants.class, LConstants.class);
         topShooterMotor = hm.get(DcMotorEx.class, "topShooter");
         counterRoller = hm.get(DcMotorEx.class, "counterRoller");
@@ -152,6 +158,7 @@ public class  Robot {
             voltage = voltageSensor.getVoltage();
         }
 
+        velocity = follower.getVelocity();
         MyTelem.addData("distance from goal", getDistanceFromGoal());
         MyTelem.addData("Current Pose", currentPose);
 
@@ -182,14 +189,16 @@ public class  Robot {
         follower.setMaxPower(1);
         holding = false;
     }
-    public static double getDistanceFromGoal(){
-        Pose pose = Robot.currentPose;
+    public static double getDistanceFromGoal(Pose pose){
         Pose goalPose = Robot.getGoalPose();
 
         double dX = pose.getX() - goalPose.getX();
         double dY = pose.getY() - goalPose.getY();
 
         return Math.hypot(dX, dY);
+    }
+    public static double getDistanceFromGoal(){
+        return getDistanceFromGoal(Robot.currentPose);
     }
     public static Pose getGoalPose(){
         if(red){

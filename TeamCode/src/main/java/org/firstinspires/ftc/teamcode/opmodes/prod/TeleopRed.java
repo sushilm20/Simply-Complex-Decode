@@ -26,6 +26,8 @@ import org.firstinspires.ftc.teamcode.robot.subsystems.Kicker;
 import org.firstinspires.ftc.teamcode.robot.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.robot.subsystems.Turret;
 import org.firstinspires.ftc.teamcode.utils.MyTelem;
+import org.firstinspires.ftc.teamcode.utils.constants.BotConstants;
+import org.firstinspires.ftc.teamcode.utils.constants.TurretConstants;
 
 @TeleOp(name = "Teleop Red", group = "Comp")
 public class TeleopRed extends LinearOpMode {
@@ -38,9 +40,20 @@ public class TeleopRed extends LinearOpMode {
         GamepadEx gp2 = new GamepadEx(gamepad2);
 
         gp2.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER).whenReleased(new IntakeCommand(robot, Intake.IntakeState.OFF));
-        gp2.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER).whenPressed(new IntakeCommand(robot, Intake.IntakeState.REV));
+        gp2.getGamepadButton(GamepadKeys.Button.LEFT_BUMPER).whenPressed(new IntakeCommand(robot, Intake.IntakeState.SOLOFRONT));
         gp2.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenPressed(new IntakeCommand(robot, Intake.IntakeState.ON));
         gp2.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenReleased(new IntakeCommand(robot, Intake.IntakeState.OFF));
+
+        gp2.getGamepadButton(GamepadKeys.Button.DPAD_DOWN).whenPressed(new InstantCommand(() ->
+                BotConstants.isMath = !(BotConstants.isMath))
+        );
+        gp2.getGamepadButton(GamepadKeys.Button.DPAD_RIGHT).whenPressed(
+                new InstantCommand(() -> TurretConstants.OFFSET -= TurretConstants.turretChange)
+        );
+        gp2.getGamepadButton(GamepadKeys.Button.DPAD_LEFT).whenPressed(
+                new InstantCommand(() -> TurretConstants.OFFSET += TurretConstants.turretChange)
+        );
+
 
         Trigger rightTrig = new Trigger(() -> gp2.getTrigger(GamepadKeys.Trigger.RIGHT_TRIGGER) > 0.5);
         Trigger leftTrig = new Trigger(() -> gp2.getTrigger(GamepadKeys.Trigger.LEFT_TRIGGER) > 0.5);
@@ -67,7 +80,7 @@ public class TeleopRed extends LinearOpMode {
         gp2.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenReleased(new TurretCommand(robot, Turret.TurretState.FRONT));
 
         gp2.getGamepadButton(GamepadKeys.Button.Y).whenPressed(
-                new TransferCommand(robot, false, true)
+                new TransferCommand(robot, BotConstants.isMath ? TransferCommand.TransferCommandState.MATH : TransferCommand.TransferCommandState.CLOSE)
         );
 
         gp2.getGamepadButton(GamepadKeys.Button.Y).whenReleased(
@@ -75,7 +88,7 @@ public class TeleopRed extends LinearOpMode {
         );
 
         gp2.getGamepadButton(GamepadKeys.Button.X).whenPressed(
-                new TransferCommand(robot, false, true)
+                new TransferCommand(robot, BotConstants.isMath ? TransferCommand.TransferCommandState.MATH : TransferCommand.TransferCommandState.FAR)
         );
         gp2.getGamepadButton(GamepadKeys.Button.X).whenReleased(
                 new TransferCancelCommand(robot)

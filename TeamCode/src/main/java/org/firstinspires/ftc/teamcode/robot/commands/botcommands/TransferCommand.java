@@ -24,38 +24,53 @@ public class TransferCommand extends SequentialCommandGroup {
     public static int kickerWait = 200;
     public static int intakeWait = 1800;
     public static int blockerWait = 700;
-    public TransferCommand(Robot robot, boolean shortSide, boolean math){
-        if (shortSide && !math) {
+    public TransferCommand(Robot robot, TransferCommandState state){
+        if (state == TransferCommandState.CLOSE) {
             addCommands(
                     new ShooterCommand(robot, Shooter.ShooterState.CLOSE),
+                    new IntakeCommand(robot, Intake.IntakeState.ON),
                     new WaitCommand(blockerWait),
                     new BlockerCommand(robot, Blocker.BlockerState.UNBLOCKED),
-                    new WaitCommand(firstBallWaitClose),
+                    new IntakeCommand(robot, Intake.IntakeState.SOLOBACK),
                     new KickerCommand(robot, Kicker.KickerState.ON),
-                    new IntakeCommand(robot, Intake.IntakeState.ON),
+                    new WaitCommand(blockerWait / 2),
+                    new WaitCommand(kickerWait),
+                    new IntakeCommand(robot, Intake.IntakeState.SOLOBACK),
                     new WaitCommand(intakeWait)
             );
         }
-        else if(!shortSide && !math) {
+        else if(state == TransferCommandState.FAR) {
+            long commandWait = (long) (blockerWait + Math.max(0, ((Robot.getDistanceFromGoal() - 100) * 15)));
+
             addCommands(
                     new ShooterCommand(robot, Shooter.ShooterState.FAR),
-                    new WaitCommand(blockerWait),
+                    new WaitCommand(commandWait / 2),
                     new BlockerCommand(robot, Blocker.BlockerState.UNBLOCKED),
-                    new WaitCommand(firstBallWaitFar),
-                    new KickerCommand(robot, Kicker.KickerState.ON),
-                    new IntakeCommand(robot, Intake.IntakeState.ON),
-                    new WaitCommand(intakeWait)
-            );
-        } else if(math){
-            addCommands(
-                    new ShooterCommand(robot, Shooter.ShooterState.MATH),
-                    new WaitCommand(blockerWait),
-                    new BlockerCommand(robot, Blocker.BlockerState.UNBLOCKED),
+                    new WaitCommand(commandWait / 2),
                     new KickerCommand(robot, Kicker.KickerState.ON),
                     new WaitCommand(kickerWait),
+                    new IntakeCommand(robot, Intake.IntakeState.SOLOFRONT),
+                    new WaitCommand(intakeWait)
+            );
+        } else if(state == TransferCommandState.MATH){
+            long commandWait = (long) (blockerWait + Math.max(0, ((Robot.getDistanceFromGoal() - 100) * 15)));
+
+            addCommands(
+                    new ShooterCommand(robot, Shooter.ShooterState.MATH),
                     new IntakeCommand(robot, Intake.IntakeState.ON),
+                    new WaitCommand(commandWait),
+                    new BlockerCommand(robot, Blocker.BlockerState.UNBLOCKED),
+                    new IntakeCommand(robot, Intake.IntakeState.SOLOBACK),
+                    new KickerCommand(robot, Kicker.KickerState.ON),
+                    new WaitCommand(commandWait / 2),
+                    new WaitCommand(kickerWait),
+                    new IntakeCommand(robot, Intake.IntakeState.SOLOBACK),
                     new WaitCommand(intakeWait)
             );
         }
+    }
+
+    public enum TransferCommandState{
+        CLOSE, FAR, MATH
     }
 }
