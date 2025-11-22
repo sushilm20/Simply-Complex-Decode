@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.robot.commands.botcommands;
 
-import static org.firstinspires.ftc.teamcode.pedroPathing.constants.AutoConstants.shootingX;
-import static org.firstinspires.ftc.teamcode.pedroPathing.constants.AutoConstants.shootingY;
+import static org.firstinspires.ftc.teamcode.utils.constants.AutoConstants.shootingX;
+import static org.firstinspires.ftc.teamcode.utils.constants.AutoConstants.shootingY;
 
 import com.arcrobotics.ftclib.command.InstantCommand;
 import com.arcrobotics.ftclib.command.SequentialCommandGroup;
