@@ -6,13 +6,10 @@ import com.arcrobotics.ftclib.command.ParallelCommandGroup;
 import com.arcrobotics.ftclib.command.button.Trigger;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
-import com.pedropathing.localization.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.pedroPathing.constants.AutoConstants;
+import org.firstinspires.ftc.teamcode.utils.constants.AutoConstants;
 import org.firstinspires.ftc.teamcode.robot.Robot;
-import org.firstinspires.ftc.teamcode.robot.commands.botcommands.MoveToCloseShootCommand;
 import org.firstinspires.ftc.teamcode.robot.commands.botcommands.TransferCancelCommand;
 import org.firstinspires.ftc.teamcode.robot.commands.botcommands.TransferCommand;
 import org.firstinspires.ftc.teamcode.robot.commands.subsystemcommands.BlockerCommand;

@@ -1,19 +1,15 @@
 package org.firstinspires.ftc.teamcode.opmodes.prod;
 
-import com.arcrobotics.ftclib.command.CommandGroupBase;
 import com.arcrobotics.ftclib.command.CommandScheduler;
 import com.arcrobotics.ftclib.command.InstantCommand;
 import com.arcrobotics.ftclib.command.ParallelCommandGroup;
 import com.arcrobotics.ftclib.command.button.Trigger;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
-import com.pedropathing.localization.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
-import org.firstinspires.ftc.teamcode.pedroPathing.constants.AutoConstants;
 import org.firstinspires.ftc.teamcode.robot.Robot;
-import org.firstinspires.ftc.teamcode.robot.commands.botcommands.MoveToCloseShootCommand;
 import org.firstinspires.ftc.teamcode.robot.commands.botcommands.TransferCancelCommand;
 import org.firstinspires.ftc.teamcode.robot.commands.botcommands.TransferCommand;
 import org.firstinspires.ftc.teamcode.robot.commands.subsystemcommands.BlockerCommand;
@@ -30,7 +26,6 @@ import org.firstinspires.ftc.teamcode.utils.MyTelem;
 import org.firstinspires.ftc.teamcode.utils.constants.BotConstants;
 import org.firstinspires.ftc.teamcode.utils.constants.TurretConstants;
 
-import static org.firstinspires.ftc.teamcode.opmodes.prod.CloseAutoBlue.autoEndPose;
 @TeleOp(name = "Teleop Blue", group = "Comp")
 public class TeleopBlue extends LinearOpMode {
     @Override
