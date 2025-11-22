@@ -44,7 +44,7 @@ public class Turret implements Subsystem {
                 break;
 
             case MATH:
-                pointToGoal();
+                pointToGoal(Robot.getEffectiveCoordinates());
                 break;
         }
     }
@@ -53,8 +53,7 @@ public class Turret implements Subsystem {
         turretLeftServo.setPosition(pos);
         turretRightServo.setPosition(pos);
     }
-    private void pointToGoal() {
-        Pose cur  = Robot.currentPose;
+    private void pointToGoal(Pose cur) {
         Pose goal = Robot.getGoalPose();
         double fieldAngle = Math.atan2(
                 goal.getY() - cur.getY(),
