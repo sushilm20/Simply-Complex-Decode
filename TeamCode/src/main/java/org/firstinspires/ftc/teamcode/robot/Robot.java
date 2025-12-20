@@ -94,13 +94,10 @@ public class  Robot {
 
         bottomShooterMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         topShooterMotor.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
-//        counterRoller.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         bottomShooterMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         topShooterMotor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
-//        counterRoller.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         Limelight3A llHw = hm.get(Limelight3A.class, "limelight");
-
         bottomShooterMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         if(!auto){
