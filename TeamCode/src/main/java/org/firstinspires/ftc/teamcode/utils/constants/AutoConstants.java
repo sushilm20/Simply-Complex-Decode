@@ -20,6 +20,6 @@ public class AutoConstants {
     public static double startX = 21.32;
     public static double startY = 123.84;
     public static double leverX = 17.41;
-    public static double leverY = 50.5;
+    public static double leverY = 60.5;
 
 }
