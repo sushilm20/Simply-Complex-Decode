@@ -1,16 +1,12 @@
 package org.firstinspires.ftc.teamcode.robot.subsystems;
 
-import static org.firstinspires.ftc.teamcode.utils.constants.BotConstants.CAMERA_YAW;
+import static org.firstinspires.ftc.teamcode.utils.constants.BotConstants.cameraYaw;
 
 import com.arcrobotics.ftclib.command.Subsystem;
-import com.pedropathing.localization.Pose;
 import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.utils.MyTelem;
 import org.firstinspires.ftc.teamcode.utils.constants.BotConstants;
@@ -56,7 +52,7 @@ public class LimelightCamera implements Subsystem {
             lastTy = target.tY;
 
             lastSeenTimeMs = now;
-            double totalPitchDeg = target.tY + CAMERA_YAW;
+            double totalPitchDeg = target.tY + cameraYaw;
 
             target.distance = BotConstants.goalDY / Math.tan(Math.toRadians(totalPitchDeg));
             return;

@@ -6,6 +6,7 @@ import static org.firstinspires.ftc.teamcode.utils.constants.TurretConstants.I;
 import static org.firstinspires.ftc.teamcode.utils.constants.TurretConstants.MAX_STEP_PER_LOOP;
 import static org.firstinspires.ftc.teamcode.utils.constants.TurretConstants.P;
 import static org.firstinspires.ftc.teamcode.utils.constants.TurretConstants.SLOPE;
+import static org.firstinspires.ftc.teamcode.utils.constants.TurretConstants.closeTolerance;
 import static org.firstinspires.ftc.teamcode.utils.constants.TurretConstants.tolerance;
 
 import com.arcrobotics.ftclib.command.Subsystem;
@@ -50,6 +51,10 @@ public class Turret implements Subsystem {
                 if (tag == null || !tag.hasTarget) {
                     pointToGoalPinPoint(Robot.getEffectiveCoordinates());
                 } else{
+                    if (Math.abs(tag.tX) > closeTolerance && Robot.auto) {
+                        pointToGoalPinPoint(Robot.getEffectiveCoordinates());
+                        return;
+                    }
                     MyTelem.addData("MATH CAMERA", true);
                     pointToGoalCamera(tag);
                 }

@@ -25,27 +25,29 @@ public class TransferCommand extends SequentialCommandGroup {
     public static int speedUpDelay = 0; 
     public static int intakeWait = 0;
     public static int blockerWait = 0;
-    public TransferCommand(Robot robot){
-        BotConstants.BotState state = Robot.botState;
-        MyTelem.addData("Robot State", state);
-        Shooter.ShooterState shooterState =
-                state == BotConstants.BotState.MATH ? Shooter.ShooterState.MATH :
-                        state == BotConstants.BotState.MANUAL ? Shooter.ShooterState.CLOSE :
-                                Shooter.ShooterState.TESTING;
-        MyTelem.addData("Shooter State", shooterState);
-
+    public TransferCommand(Robot robot, Shooter.ShooterState shooterState) {
         addCommands(
                 new ShooterCommand(robot, shooterState),
                 new ParallelRaceGroup(
-                    new WaitUntilCommand(() -> robot.shooter.shooterAtRPM()),
-                    new WaitCommand(3000)
+                        new WaitUntilCommand(() -> robot.shooter.shooterAtRPM()),
+                        new WaitCommand(3000)
                 ),
                 new BlockerCommand(robot, Blocker.BlockerState.UNBLOCKED),
+                new IntakeCommand(robot, Intake.IntakeState.ON),
                 new WaitCommand(200),
                 new KickerCommand(robot, Kicker.KickerState.ON),
-                new IntakeCommand(robot, Intake.IntakeState.ON),
-                new WaitCommand(1250)
+                new WaitCommand(750)
         );
+    }
+    public TransferCommand(Robot robot){
+        this(robot, determineShooterState(robot));
+    }
+
+    private static Shooter.ShooterState determineShooterState(Robot robot) {
+        BotConstants.BotState state = Robot.botState;
+        return state == BotConstants.BotState.MATH ? Shooter.ShooterState.MATH :
+                        state == BotConstants.BotState.MANUAL ? Shooter.ShooterState.CLOSE :
+                                Shooter.ShooterState.TESTING;
     }
 
 

@@ -39,7 +39,7 @@ import java.util.concurrent.TimeUnit;
 @Config
 public class  Robot {
     public static BotConstants.BotState botState = BotConstants.BotState.MATH;
-    public boolean auto = false;
+    public static boolean auto = false;
     public static Vector velocity = new Vector(new Point(0,0));
     public static Pose currentPose = new Pose(0,0,0);
     public boolean holding;

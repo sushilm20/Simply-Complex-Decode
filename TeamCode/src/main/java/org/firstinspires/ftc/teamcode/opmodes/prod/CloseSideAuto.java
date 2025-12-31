@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode.opmodes.prod;
 
-import static org.firstinspires.ftc.teamcode.utils.constants.AutoConstants.intakeBallWait;
 import static org.firstinspires.ftc.teamcode.utils.constants.AutoConstants.leverHeading;
 import static org.firstinspires.ftc.teamcode.utils.constants.AutoConstants.leverIntakeBallWait;
 
@@ -64,13 +63,6 @@ public class CloseSideAuto extends OpMode {
                 )
         );
 
-        CommandGroupBase shootThree = new SequentialCommandGroup(
-                new TransferCommand(robot),
-                new TransferCancelCommand(robot),
-                new IntakeCommand(robot, Intake.IntakeState.ON)
-        );
-
-
         BotConstants.BotState state = Robot.botState;
         Shooter.ShooterState shooterState =
                 state == BotConstants.BotState.MATH ? Shooter.ShooterState.MATH :
@@ -78,67 +70,118 @@ public class CloseSideAuto extends OpMode {
                                 Shooter.ShooterState.TESTING;
 
         auto = new SequentialCommandGroup(
-                new TurretCommand(robot, Turret.TurretState.MATH),
+                new TurretCommand(robot, Turret.TurretState.MATH_CAMERA),
                 new IntakeCommand(robot, Intake.IntakeState.ON),
                 new ShooterCommand(robot, shooterState),
-                new FollowPathCommand(robot.follower, paths.Path1),
-                shootThree,
+                new ParallelCommandGroup(
+                    new FollowPathCommand(robot.follower, paths.Path1),
+                    shootThree()
+                ),
                 new IntakeCommand(robot, Intake.IntakeState.ON),
                 new ParallelCommandGroup(
                     new TurretCommand(robot, Turret.TurretState.FRONT),
                     new FollowPathCommand(robot.follower, paths.Path2)
                 ),
-                new WaitCommand(intakeBallWait),
                 new ParallelCommandGroup(
-                        new TurretCommand(robot, Turret.TurretState.MATH),
-                        new ShooterCommand(robot, shooterState),
-                        new FollowPathCommand(robot.follower, paths.Path3)
+                        new FollowPathCommand(robot.follower, paths.Path3),
+                        new TurretCommand(robot, Turret.TurretState.MATH_CAMERA),
+                        new ShooterCommand(robot, shooterState)
                 ),
-                shootThree,
+                shootThree(),
                 new IntakeCommand(robot, Intake.IntakeState.ON),
+                new ShooterCommand(robot, shooterState),
+                new TurretCommand(robot, Turret.TurretState.FRONT),
                 new FollowPathCommand(robot.follower, paths.LeverPath),
                 new WaitCommand(leverIntakeBallWait),
                 new IntakeCommand(robot, Intake.IntakeState.OFF),
                 new ParallelCommandGroup(
-                    new TurretCommand(robot, Turret.TurretState.MATH),
-                    new ShooterCommand(robot, shooterState),
-                    new FollowPathCommand(robot.follower, paths.LeverPath2),
-                    new SequentialCommandGroup(
-                            new WaitCommand(300),
-                            new IntakeCommand(robot, Intake.IntakeState.ON)
-                    )
+                        new TurretCommand(robot, Turret.TurretState.MATH_CAMERA),
+                        new FollowPathCommand(robot.follower, paths.LeverPath2),
+                        new SequentialCommandGroup(
+                                new WaitCommand(300),
+                                new IntakeCommand(robot, Intake.IntakeState.ON)
+                        )
                 ),
-                shootThree,
+                shootThree(),
+                new IntakeCommand(robot, Intake.IntakeState.ON),
+                new ShooterCommand(robot, shooterState),
+                new TurretCommand(robot, Turret.TurretState.FRONT),
+                new FollowPathCommand(robot.follower, paths.LeverPath3),
+                new WaitCommand(leverIntakeBallWait),
+                new IntakeCommand(robot, Intake.IntakeState.OFF),
+                new ParallelCommandGroup(
+                        new TurretCommand(robot, Turret.TurretState.MATH_CAMERA),
+                        new FollowPathCommand(robot.follower, paths.LeverPath4),
+                        new SequentialCommandGroup(
+                                new WaitCommand(300),
+                                new IntakeCommand(robot, Intake.IntakeState.ON)
+                        )
+                ),
+                shootThree(),
                 new IntakeCommand(robot, Intake.IntakeState.ON),
                 new ParallelCommandGroup(
                     new TurretCommand(robot, Turret.TurretState.FRONT),
                     new FollowPathCommand(robot.follower, paths.Path4)
                 ),
-                new WaitCommand(intakeBallWait),
                 new ParallelCommandGroup(
-                    new TurretCommand(robot, Turret.TurretState.MATH),
+                    new TurretCommand(robot, Turret.TurretState.MATH_CAMERA),
                     new ShooterCommand(robot, shooterState),
                     new FollowPathCommand(robot.follower, paths.Path5)
                 ),
-                shootThree,
+                shootThree(),
                 new IntakeCommand(robot, Intake.IntakeState.ON),
                 new ParallelCommandGroup(
                     new TurretCommand(robot, Turret.TurretState.FRONT),
                     new FollowPathCommand(robot.follower, paths.Path6)
                 ),
-                new WaitCommand(intakeBallWait),
                 new ParallelCommandGroup(
-                    new TurretCommand(robot, Turret.TurretState.MATH),
+                    new TurretCommand(robot, Turret.TurretState.MATH_CAMERA),
                     new ShooterCommand(robot, shooterState),
                     new FollowPathCommand(robot.follower, paths.Path7)
                 ),
-                shootThree
+                shootThree()
         );
 
         dashboardPoseTracker = new DashboardPoseTracker(robot.follower.poseUpdater);
         Drawing.drawRobot(robot.follower.poseUpdater.getPose(), "#4CAF50");
         Drawing.sendPacket();
     }
+
+    private CommandGroupBase shootThree() {
+        return new SequentialCommandGroup(
+                new TransferCommand(robot),
+                new TransferCancelCommand(robot),
+                new IntakeCommand(robot, Intake.IntakeState.ON)
+        );
+    }
+
+    private CommandGroupBase shootThree(Shooter.ShooterState shooterState) {
+        return new SequentialCommandGroup(
+                new TransferCommand(robot, shooterState),
+                new TransferCancelCommand(robot),
+                new IntakeCommand(robot, Intake.IntakeState.ON)
+        );
+    }
+
+    private CommandGroupBase leverPathing(Shooter.ShooterState shooterState) {
+        return new SequentialCommandGroup(
+                new FollowPathCommand(robot.follower, paths.LeverPath),
+                new WaitCommand(leverIntakeBallWait),
+                new IntakeCommand(robot, Intake.IntakeState.OFF),
+                new ParallelCommandGroup(
+                        new TurretCommand(robot, Turret.TurretState.MATH_CAMERA),
+                        new ShooterCommand(robot, shooterState),
+                        new FollowPathCommand(robot.follower, paths.LeverPath2),
+                        new SequentialCommandGroup(
+                                new WaitCommand(300),
+                                new IntakeCommand(robot, Intake.IntakeState.ON)
+                        )
+                ),
+                shootThree(),
+                new IntakeCommand(robot, Intake.IntakeState.ON)
+        );
+    }
+
 
     @Override
     public void loop() {
@@ -172,7 +215,7 @@ public class CloseSideAuto extends OpMode {
 
     public static class CloseSideAutoPaths {
         public PathChain Path1, Path2, Path3, Path4, Path5, Path6, Path7;
-        public PathChain LeverPath, LeverPath2;
+        public PathChain LeverPath, LeverPath2, LeverPath3, LeverPath4;
 
         public CloseSideAutoPaths(Follower follower, String color) {
             Pose startPose = CloseSideAutoPoseData.mirror(CloseSideAutoPoseData.START_POSE, color);
@@ -195,41 +238,60 @@ public class CloseSideAuto extends OpMode {
             follower.setStartingPose(startPose);
             Path1 = follower.pathBuilder()
                     .addPath(new BezierLine(startPose, shootingPose))
-                    .setLinearHeadingInterpolation(Math.toRadians(startHeading), Math.toRadians(heading180))
-                    .setZeroPowerAccelerationMultiplier(3)
+//                    .(Math.toRadians(startHeading), Math.toRadians(heading180))
+                    .setTangentHeadingInterpolation()
+                    .setReversed(true)
+                    .setZeroPowerAccelerationMultiplier(4)
                     .build();
             Path2 = follower.pathBuilder()
                     .addPath(new BezierCurve(shootingPose, mid2Curve, secondIntake))
                     .setLinearHeadingInterpolation(Math.toRadians(heading180), Math.toRadians(heading180))
-                    .setZeroPowerAccelerationMultiplier(3)
+                    .setZeroPowerAccelerationMultiplier(4)
                     .build();
             Path3 = follower.pathBuilder()
                     .addPath(new BezierLine(secondIntake, shootingPose))
-                    .setLinearHeadingInterpolation(Math.toRadians(heading180), Math.toRadians(heading180))
+                    .setTangentHeadingInterpolation()
+                    .setReversed(true)
                     .build();
             LeverPath = follower.pathBuilder()
                     .addPath(new BezierCurve(shootingPose, leverControl, leverPose))
                     .setLinearHeadingInterpolation(Math.toRadians(heading180), Math.toRadians(leverHeading))
-                    .setZeroPowerAccelerationMultiplier(2)
+                    .setZeroPowerAccelerationMultiplier(1)
                     .build();
             LeverPath2 = follower.pathBuilder()
                     .addPath(new BezierLine(leverPose, shootingPose))
-                    .setLinearHeadingInterpolation(Math.toRadians(leverHeading), Math.toRadians(heading180))
-                    .setZeroPowerAccelerationMultiplier(2)
+//                    .setLinearHeadingInterpolation(Math.toRadians(leverHeading), Math.toRadians(heading180))
+                    .setTangentHeadingInterpolation()
+                    .setReversed(true)
+                    .setZeroPowerAccelerationMultiplier(4)
                     .build();
+            LeverPath3 = follower.pathBuilder()
+                    .addPath(new BezierCurve(shootingPose, leverControl, leverPose))
+                    .setLinearHeadingInterpolation(Math.toRadians(heading180), Math.toRadians(leverHeading))
+                    .setZeroPowerAccelerationMultiplier(1.5)
+                    .build();
+            LeverPath4 = follower.pathBuilder()
+                    .addPath(new BezierLine(leverPose, shootingPose))
+//                    .setLinearHeadingInterpolation(Math.toRadians(leverHeading), Math.toRadians(heading180))
+                    .setTangentHeadingInterpolation()
+                    .setReversed(true)
+                    .setZeroPowerAccelerationMultiplier(4)
+                    .build();
+
             Path4 = follower.pathBuilder()
                     .addPath(new BezierCurve(shootingPose, mid1Curve, firstIntake))
                     .setLinearHeadingInterpolation(Math.toRadians(heading180), Math.toRadians(heading180))
-                    .setZeroPowerAccelerationMultiplier(3)
+                    .setZeroPowerAccelerationMultiplier(4)
                     .build();
             Path5 = follower.pathBuilder()
                     .addPath(new BezierLine(firstIntake, shootingPose))
-                    .setLinearHeadingInterpolation(Math.toRadians(heading180), Math.toRadians(heading180))
+                    .setTangentHeadingInterpolation()
+                    .setReversed(true)
                     .build();
             Path6 = follower.pathBuilder()
                     .addPath(new BezierCurve(shootingPose, mid3Curve, finalIntake))
-                    .setLinearHeadingInterpolation(Math.toRadians(heading180), Math.toRadians(heading180))
-                    .setZeroPowerAccelerationMultiplier(3)
+                    .setLinearHeadingInterpolation(Math.toRadians(finalShootHeading), Math.toRadians(heading180))
+                    .setZeroPowerAccelerationMultiplier(4)
                     .build();
             Path7 = follower.pathBuilder()
                     .addPath(new BezierLine(finalIntake, finalShootingPose))

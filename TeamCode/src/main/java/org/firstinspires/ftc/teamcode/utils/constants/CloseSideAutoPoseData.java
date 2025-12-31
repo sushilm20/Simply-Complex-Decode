@@ -15,9 +15,9 @@ public class CloseSideAutoPoseData {
     public static final Pose SECOND_INTAKE  = new Pose(AutoConstants.secondIntakeX, 58.5);
     public static final Pose LEVER = new Pose(AutoConstants.leverX, AutoConstants.leverY);
     public static final Pose LEVER_CONTROL = new Pose(AutoConstants.leverPoseX, AutoConstants.leverPoseY);
-    public static final Pose MID3_CURVE     = new Pose(87, 31);           // path6 control point
-    public static final Pose FINAL_INTAKE   = new Pose(AutoConstants.secondIntakeX, 34);
-    public static final Pose FINAL_SHOOT   = new Pose(69, 95.5);
+    public static final Pose MID3_CURVE     = new Pose(79, 28);           // path6 control point
+    public static final Pose FINAL_INTAKE   = new Pose(AutoConstants.secondIntakeX, 37);
+    public static final Pose FINAL_SHOOT   = new Pose(58, 101);
 
     public static final double START_HEADING  = AutoConstants.startHeading;
     public static final double SHOOTING_HEADING = AutoConstants.shootingAngle;
