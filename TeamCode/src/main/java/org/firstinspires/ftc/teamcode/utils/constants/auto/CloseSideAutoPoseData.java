@@ -1,10 +1,13 @@
-package org.firstinspires.ftc.teamcode.utils.constants;
+package org.firstinspires.ftc.teamcode.utils.constants.auto;
 
-import static org.firstinspires.ftc.teamcode.utils.constants.AutoConstants.startX;
-import static org.firstinspires.ftc.teamcode.utils.constants.AutoConstants.startY;
+import static org.firstinspires.ftc.teamcode.utils.constants.auto.AutoConstants.leverIntakeX;
+import static org.firstinspires.ftc.teamcode.utils.constants.auto.AutoConstants.leverIntakeY;
+import static org.firstinspires.ftc.teamcode.utils.constants.auto.AutoConstants.startX;
+import static org.firstinspires.ftc.teamcode.utils.constants.auto.AutoConstants.startY;
 
 import com.acmerobotics.dashboard.config.Config;
 import com.pedropathing.localization.Pose;
+
 @Config
 public class CloseSideAutoPoseData {
     public static final Pose START_POSE     = new Pose(startX, startY, Math.toRadians(143.7));
@@ -15,10 +18,10 @@ public class CloseSideAutoPoseData {
     public static final Pose SECOND_INTAKE  = new Pose(AutoConstants.secondIntakeX, AutoConstants.secondIntakeY);
     public static final Pose LEVER = new Pose(AutoConstants.leverX, AutoConstants.leverY);
     public static final Pose LEVER_CONTROL = new Pose(AutoConstants.leverPoseX, AutoConstants.leverPoseY);
-    public static final Pose MID3_CURVE     = new Pose(79, 28);           // path6 control point
+    public static final Pose MID3_CURVE    = new Pose(79, 28);           // path6 control point
     public static final Pose FINAL_INTAKE   = new Pose(AutoConstants.secondIntakeX, 38.5);
-    public static final Pose FINAL_SHOOT   = new Pose(56, 115);
-
+    public static final Pose FINAL_SHOOT   = new Pose(63, 102);
+    public static final Pose LEVER_INTAKE = new Pose(leverIntakeX, leverIntakeY);
     public static final double START_HEADING  = AutoConstants.startHeading;
     public static final double SHOOTING_HEADING = AutoConstants.shootingAngle;
     public static double mirrorX(double x, String color) {

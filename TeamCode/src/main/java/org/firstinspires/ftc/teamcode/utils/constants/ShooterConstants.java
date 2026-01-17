@@ -6,7 +6,7 @@ import com.acmerobotics.dashboard.config.Config;
 public class ShooterConstants {
     public static double currentVelocity = 0.0;
     public static double startingVelocity = 0.0;
-    public static double speedingVelocity = 2500;
+    public static double speedingVelocity = 4000;
     public static double closeShootRPM = 4100;// 1800
     public static double farShootRPM = 4100; //2.16k
     public static double tuningTestingRPM = 4100;

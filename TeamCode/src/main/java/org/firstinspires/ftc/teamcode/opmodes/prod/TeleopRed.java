@@ -93,11 +93,11 @@ public class TeleopRed extends LinearOpMode {
                 )
         );
 
-        gp1.getGamepadButton(GamepadKeys.Button.B).whenPressed(
+        gp1.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenPressed(
                 new InstantCommand(robot::holding)
         );
 
-        gp1.getGamepadButton(GamepadKeys.Button.B).whenReleased(
+        gp1.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenReleased(
                 new InstantCommand(robot::stopHolding)
         );
 

@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.utils.constants;
 
-import static org.firstinspires.ftc.teamcode.utils.constants.AutoConstants.startX;
-import static org.firstinspires.ftc.teamcode.utils.constants.AutoConstants.startY;
+import static org.firstinspires.ftc.teamcode.utils.constants.auto.AutoConstants.startX;
+import static org.firstinspires.ftc.teamcode.utils.constants.auto.AutoConstants.startY;
 
 import com.acmerobotics.dashboard.config.Config;
 @Config
