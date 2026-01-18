@@ -3,13 +3,11 @@ import com.acmerobotics.dashboard.config.Config;
 
 @Config
 public class CameraConstants {
-    public static double p;
-    public static double i;
-    public static double d;
-    public static int blueID;
-    public static int redID;
-    public static int camaeraSizeX;
-    public static int camaeraSizeY;
+    public static double cameraYaw = 12;
+    public static double poseUpdateDistance = 40;
+    public static double poseUpdateVelocity = 40;
+    public static double poseUpdateIntervalMS = 1000;
+
 
 
 }

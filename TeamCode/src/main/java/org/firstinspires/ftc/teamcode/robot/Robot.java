@@ -155,6 +155,7 @@ public class  Robot {
         velocity = follower.getVelocity();
         MyTelem.addData("distance from goal", getDistanceFromGoal());
         MyTelem.addData("Current Pose", currentPose);
+        MyTelem.addData("Velocity", velocity.getMagnitude());
         MyTelem.update();
     }
 

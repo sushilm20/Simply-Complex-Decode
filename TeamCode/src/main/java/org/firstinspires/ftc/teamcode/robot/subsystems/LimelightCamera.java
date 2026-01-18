@@ -4,18 +4,28 @@ import static org.firstinspires.ftc.teamcode.utils.constants.BotConstants.camera
 
 import com.arcrobotics.ftclib.command.Subsystem;
 import com.qualcomm.hardware.limelightvision.LLResult;
+import com.qualcomm.hardware.limelightvision.LLResultTypes;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
+import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.utils.MyTelem;
 import org.firstinspires.ftc.teamcode.utils.constants.BotConstants;
+import org.firstinspires.ftc.teamcode.utils.constants.CameraConstants;
 
 public class LimelightCamera implements Subsystem {
     private double lastTy = 0.0;
     private double lastTx = 0.0;
+    private Pose3D BotPose = new Pose3D(new Position(DistanceUnit.INCH, 0,0,0, 0), new YawPitchRollAngles(AngleUnit.DEGREES,0,0,0,0));
     private long lastSeenTimeMs = 0;
     private static final long TARGET_HOLD_MS = 250;
+    private long time, lastRobotPoseUpdateTimeMS = 0;
+
     public static class TagTarget {
         public boolean hasTarget = false;
         public Pose3D botPose;
@@ -23,10 +33,12 @@ public class LimelightCamera implements Subsystem {
         public double tX = 0.0;
         public double tY = 0.0;
         public double distance = 0.0;
+        public double ambiguity;
     }
 
     private final Limelight3A limelight;
     private final TagTarget target = new TagTarget();
+
     public LimelightCamera(Limelight3A limelight, int pipelineIndex) {
         this.limelight = limelight;
 
@@ -38,18 +50,22 @@ public class LimelightCamera implements Subsystem {
     @Override
     public void periodic() {
         updateTarget();
+        updateRobotPose();
         publishTelem();
     }
+
 
     private void updateTarget() {
         LLResult result = limelight.getLatestResult();
         long now = Robot.getTime();
+        time = now;
         if (result != null && result.isValid()) {
             target.hasTarget = true;
             target.tX = result.getTx();
             target.tY = result.getTy();
             lastTx = target.tX;
             lastTy = target.tY;
+
 
             lastSeenTimeMs = now;
             double totalPitchDeg = target.tY + cameraYaw;
@@ -74,6 +90,14 @@ public class LimelightCamera implements Subsystem {
         target.id = -1;
         target.distance = 0.0;
     }
+
+    public void updateRobotPose(){
+        if(target.hasTarget && target.distance < CameraConstants.poseUpdateDistance && Robot.velocity.getMagnitude() < CameraConstants.poseUpdateVelocity && time-lastRobotPoseUpdateTimeMS > CameraConstants.poseUpdateIntervalMS) {
+            BotPose = limelight.getLatestResult().getBotpose();
+            lastRobotPoseUpdateTimeMS = time;
+        }
+    }
+
     private void publishTelem() {
         MyTelem.addData("LL Has Target", target.hasTarget);
         if (!target.hasTarget) return;
