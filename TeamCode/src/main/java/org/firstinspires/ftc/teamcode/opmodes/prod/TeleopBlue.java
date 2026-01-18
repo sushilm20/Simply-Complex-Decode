@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.opmodes.prod;
 import com.arcrobotics.ftclib.command.CommandScheduler;
 import com.arcrobotics.ftclib.command.InstantCommand;
 import com.arcrobotics.ftclib.command.ParallelCommandGroup;
+import com.arcrobotics.ftclib.command.SequentialCommandGroup;
 import com.arcrobotics.ftclib.command.button.Trigger;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
@@ -54,30 +55,28 @@ public class TeleopBlue extends LinearOpMode {
 
         gp2.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenPressed(
                 new ParallelCommandGroup(
-                        new TurretCommand(robot, Turret.TurretState.MATH_CAMERA),
                         new ShooterCommand(robot, Shooter.ShooterState.SPEEDING_UP)
                 )
         );
         gp2.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenReleased(
                 new ParallelCommandGroup(
-                        new TurretCommand(robot, Turret.TurretState.FRONT),
                         new ShooterCommand(robot, Shooter.ShooterState.STOP)
                 )
         );
 
         gp2.getGamepadButton(GamepadKeys.Button.Y).whenPressed(
-                new TransferCommand(robot)
+                new SequentialCommandGroup(
+                        new TurretCommand(robot, Turret.TurretState.MATH),
+                        new TransferCommand(robot)
+                )
         );
         gp2.getGamepadButton(GamepadKeys.Button.Y).whenReleased(
-                new TransferCancelCommand(robot)
+                new SequentialCommandGroup(
+                        new TransferCancelCommand(robot),
+                        new TurretCommand(robot, Turret.TurretState.FRONT)
+                )
         );
 
-        gp2.getGamepadButton(GamepadKeys.Button.X).whenPressed(
-                new TransferCommand(robot)
-        );
-        gp2.getGamepadButton(GamepadKeys.Button.X).whenReleased(
-                new TransferCancelCommand(robot)
-        );
 
         gp2.getGamepadButton(GamepadKeys.Button.A).whenPressed(
                 new ParallelCommandGroup(
@@ -95,11 +94,11 @@ public class TeleopBlue extends LinearOpMode {
                 )
         );
 
-        gp1.getGamepadButton(GamepadKeys.Button.B).whenPressed(
+        gp1.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenPressed(
                 new InstantCommand(robot::holding)
         );
 
-        gp1.getGamepadButton(GamepadKeys.Button.B).whenReleased(
+        gp1.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenReleased(
                 new InstantCommand(robot::stopHolding)
         );
 
