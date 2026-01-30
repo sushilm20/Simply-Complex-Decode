@@ -11,6 +11,7 @@ import com.pedropathing.pathgen.Point;
 import com.pedropathing.pathgen.Vector;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.hardware.lynx.LynxModule;
+import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -24,6 +25,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.pedroPathing.constants.FConstants;
 import org.firstinspires.ftc.teamcode.pedroPathing.constants.LConstants;
 import org.firstinspires.ftc.teamcode.robot.subsystems.Blocker;
+import org.firstinspires.ftc.teamcode.robot.subsystems.DistanceSensor;
 import org.firstinspires.ftc.teamcode.robot.subsystems.Indexer;
 import org.firstinspires.ftc.teamcode.robot.subsystems.Intake;
 import org.firstinspires.ftc.teamcode.robot.subsystems.Kicker;
@@ -65,6 +67,8 @@ public class  Robot {
     public Turret turret;
     public Kicker kicker;
     public Blocker blocker;
+
+//    public RevColorSensorV3 distanceSensor;
     public static LimelightCamera limelightCamera;
     public Robot(HardwareMap hm, boolean isAuto, String color){
         this(hm, isAuto);
@@ -90,6 +94,7 @@ public class  Robot {
         turretLeftServo = hm.get(Servo.class, "turretLeftServo");
         turretRightServo = hm.get(Servo.class, "turretRightServo");
         blockerServo = hm.get(Servo.class, "BlockerServo");
+//        distanceSensor = hm.get(RevColorSensorV3.class, "distanceSensor");
 //        kickerRightServo = hm.get(CRServo.class, "kickerRightServo");
 //        kickerLeftServo = hm.get(CRServo.class, "kickerLeftServo");
 
@@ -113,6 +118,7 @@ public class  Robot {
 //        kicker = new Kicker(kickerRightServo, kickerLeftServo);
         indexer = new Indexer(indexServo);
         blocker = new Blocker(blockerServo);
+//        distSensor = new DistanceSensor(distanceSensor);
 //        limelightCamera = new LimelightCamera(llHw, red ? 0 : 1);
 
         CommandScheduler.getInstance().registerSubsystem(intake, shooter, turret, indexer, blocker);
@@ -128,6 +134,7 @@ public class  Robot {
     public void update(){
         CommandScheduler.getInstance().run();
         follower.update();
+//        String ballColor = distSensor.getBallColor();
 
         if(intake != null)
             MyTelem.addData("Intake State", intake.getState());
@@ -150,6 +157,7 @@ public class  Robot {
             previousVoltageTime = timer.time(TimeUnit.MILLISECONDS);
             voltage = voltageSensor.getVoltage();
         }
+
 
         velocity = follower.getVelocity();
         MyTelem.addData("distance from goal", getDistanceFromGoal());

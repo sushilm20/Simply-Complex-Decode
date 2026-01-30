@@ -4,6 +4,7 @@ import static org.firstinspires.ftc.teamcode.utils.constants.IndexerConstants.in
 import static org.firstinspires.ftc.teamcode.utils.constants.IndexerConstants.outPosition;
 
 import com.arcrobotics.ftclib.command.Subsystem;
+import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.Servo;
 
 public class Indexer implements Subsystem {
@@ -17,6 +18,8 @@ public class Indexer implements Subsystem {
     public void setState(IndexState state) {
         this.state = state;
         switch (state) {
+//            case SORT:
+
             case IN:
                 indexServo.setPosition(inPosition);
                 break;
@@ -30,6 +33,7 @@ public class Indexer implements Subsystem {
     public IndexState getState() {return state;}
 
     public enum IndexState{
-        IN, OUT
+        IN, OUT,
+        SORT
     }
 }
