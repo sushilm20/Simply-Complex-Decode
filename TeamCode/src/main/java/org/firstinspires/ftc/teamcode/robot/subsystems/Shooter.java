@@ -48,6 +48,7 @@ public class Shooter implements Subsystem {
             case TESTING:
                 currentVelocity = tuningTestingRPM;
                 hoodServoPosition = HoodConstants.tuningTestingHoodPosition;
+                MyTelem.addData("Calculated RPM", getRPM(Robot.getEffectiveCoordinates())+RPM_OFFSET);
                 break;
             case SPEEDING_UP:
                 currentVelocity = ShooterConstants.speedingVelocity;
