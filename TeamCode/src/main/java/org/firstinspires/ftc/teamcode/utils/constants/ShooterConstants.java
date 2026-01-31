@@ -16,9 +16,8 @@ public class ShooterConstants {
     public static int RPM_OFFSET = 50;
     public static int TICKS_PER_REV = 28;
     public static int MAX_RPM = 6000;
-
-
-
-
-
+    public static double hoodServoPosition = 0;
+    public static double closeHoodAngle = 0.32;
+    public static double openAngle = 0.17;
+    public static double tuningTestingHoodPosition = 0.32;
 }
