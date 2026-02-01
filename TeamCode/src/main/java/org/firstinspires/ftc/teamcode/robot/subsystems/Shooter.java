@@ -19,6 +19,7 @@ import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.utils.MyTelem;
 import org.firstinspires.ftc.teamcode.utils.constants.ShooterConstants;
 import org.firstinspires.ftc.teamcode.utils.constants.ShooterConstants;
+import org.firstinspires.ftc.teamcode.utils.constants.ShooterMathConstants;
 
 public class Shooter implements Subsystem {
     DcMotorEx shooterMotor, shooterMotor2;
@@ -53,10 +54,29 @@ public class Shooter implements Subsystem {
                 currentVelocity = ShooterConstants.speedingVelocity;
                 break;
             case MATH:
-                double rpm = getRPM(Robot.getEffectiveCoordinates()) + RPM_OFFSET;
-                currentVelocity = rpm;
+                double rpm = Robot.getShooterMathRPM();
+                double hoodAngle = Robot.getHoodAngle();
+                double turretAngle = Robot.getTurretAngle();
+
+                setHood(hoodAngle);
+                MyTelem.addData("TURRET ANGLE", turretAngle);
+                MyTelem.addData("HOOD ANGLE", hoodAngle);
+                MyTelem.addData("HOOD POSITION", hoodServoPosition);
+                MyTelem.addData("RPM", rpm);
+//                currentVelocity = rpm;
                 break;
         }
+    }
+    public void setHood(double angleRad) {
+        double minAngle = ShooterMathConstants.HOOD_MIN_ANGLE;
+        double maxAngle = ShooterMathConstants.HOOD_MAX_ANGLE;
+        double minServo = 0.17;
+        double maxServo = 0.32;
+        angleRad = Math.max(minAngle, Math.min(maxAngle, angleRad));
+        hoodServoPosition = minServo
+                + (angleRad - minAngle)
+                * (maxServo - minServo)
+                / (maxAngle - minAngle);
     }
     public double getRPM(Pose pose){
         Vector velocity = Robot.velocity;
