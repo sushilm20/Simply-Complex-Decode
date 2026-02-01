@@ -7,6 +7,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.arcrobotics.ftclib.command.CommandScheduler;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.localization.Pose;
+import com.pedropathing.pathgen.MathFunctions;
 import com.pedropathing.pathgen.Point;
 import com.pedropathing.pathgen.Vector;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
@@ -34,8 +35,10 @@ import org.firstinspires.ftc.teamcode.robot.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.robot.subsystems.Turret;
 import org.firstinspires.ftc.teamcode.utils.MyTelem;
 import org.firstinspires.ftc.teamcode.utils.constants.BotConstants;
+import org.firstinspires.ftc.teamcode.utils.constants.ShooterMathConstants;
 import org.firstinspires.ftc.teamcode.utils.constants.TurretConstants;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -49,7 +52,7 @@ public class  Robot {
     public static boolean red;
     public static double voltage = 12;
 
-    public Follower follower;
+    public static Follower follower;
     private static ElapsedTime timer;
     private double previousVoltageTime;
     DcMotorEx backLeftMotor, backRightMotor, frontLeftMotor, frontRightMotor;
@@ -134,7 +137,6 @@ public class  Robot {
     public void update(){
         CommandScheduler.getInstance().run();
         follower.update();
-//        String ballColor = distSensor.getBallColor();
 
         if(intake != null)
             MyTelem.addData("Intake State", intake.getState());
@@ -228,7 +230,141 @@ public class  Robot {
         return new Pose(eff_x, eff_y, current.getHeading());
     }
 
+    public static double getShooterMathRPM() {
+        return shooterAndTurretMath()[1];
+    }
+
+    public static double getTurretAngle() {
+        return shooterAndTurretMath()[2];
+    }
+
+    public static double getHoodAngle() {
+        return shooterAndTurretMath()[0];
+    }
+
+    private static Vector getRobotToGoalVector() {
+        Pose goalPose = getGoalPose();
+        Pose robotPose = Robot.currentPose;
+        Vector vector = new Vector(0, 0);
+        vector.setOrthogonalComponents(goalPose.getX() - robotPose.getX(), goalPose.getY() - robotPose.getY());
+        return vector;
+    }
     public static long getTime(){
         return timer.time(TimeUnit.MILLISECONDS);
     }
+
+    private static double[] lastGood = new double[]{
+            ShooterMathConstants.HOOD_MIN_ANGLE,
+            0.0,                                  // flywheel speed
+            0.0                                   // turret angle
+    };
+
+    private static boolean isFinite(double v) {
+        return !Double.isNaN(v) && !Double.isInfinite(v);
+    }
+
+    private static double[] shooterAndTurretMath() {
+        Vector robotToGoalVector = getRobotToGoalVector();
+
+        double g = 32.174 * 12;
+        double dist = robotToGoalVector.getMagnitude();
+        double x = dist - ShooterMathConstants.PASS_THROUGH_POINT_RADIUS;
+        double y = ShooterMathConstants.SCORE_HEIGHT;
+        double a = ShooterMathConstants.SCORE_ANGLE;
+
+        if (!isFinite(dist) || !isFinite(x) || x <= 1e-6) {
+            MyTelem.addData("SM.guard", "bad dist/x");
+            return lastGood;
+        }
+
+        double hoodAngle = Math.atan(2 * y / x - Math.tan(a));
+        hoodAngle = MathFunctions.clamp(hoodAngle,
+                ShooterMathConstants.HOOD_MIN_ANGLE,
+                ShooterMathConstants.HOOD_MAX_ANGLE);
+
+        double cos = Math.cos(hoodAngle);
+        double term = x * Math.tan(hoodAngle) - y;
+        double denom1 = 2 * cos * cos * term;
+
+        if (!isFinite(denom1) || denom1 <= 1e-9) {
+            MyTelem.addData("SM.guard", "bad denom1");
+            return lastGood;
+        }
+
+        double flyWheelSpeed = Math.sqrt(g * x * x / denom1);
+        if (!isFinite(flyWheelSpeed)) {
+            MyTelem.addData("SM.guard", "bad fly1");
+            return lastGood;
+        }
+
+        Vector robotVelocity = Robot.velocity;
+
+        double rvMag = robotVelocity.getMagnitude();
+        double rvTheta = robotVelocity.getTheta();
+        double goalTheta = robotToGoalVector.getTheta();
+
+        if (!isFinite(rvMag) || !isFinite(rvTheta) || !isFinite(goalTheta)) {
+            MyTelem.addData("SM.guard", "bad vel/theta");
+            return lastGood;
+        }
+
+        double coordinateTheta = rvTheta - goalTheta;
+        double parallelComponent = -Math.cos(coordinateTheta) * rvMag;
+        double perpendicularComponent = Math.sin(coordinateTheta) * rvMag;
+
+        double vz = flyWheelSpeed * Math.sin(hoodAngle);
+
+        double denomT = flyWheelSpeed * Math.cos(hoodAngle);
+        if (!isFinite(denomT) || Math.abs(denomT) <= 1e-9) {
+            MyTelem.addData("SM.guard", "bad time denom");
+            return lastGood;
+        }
+        double time = x / denomT;
+
+        double ivr = x / time + parallelComponent;
+        double nvr = Math.sqrt(ivr * ivr + perpendicularComponent * perpendicularComponent);
+
+        if (!isFinite(nvr) || nvr <= 1e-9) {
+            MyTelem.addData("SM.guard", "bad nvr");
+            return lastGood;
+        }
+
+        double ndr = nvr * time;
+
+        hoodAngle = MathFunctions.clamp(Math.atan2(vz, nvr),
+                ShooterMathConstants.HOOD_MIN_ANGLE,
+                ShooterMathConstants.HOOD_MAX_ANGLE);
+
+        double cos2 = Math.cos(hoodAngle);
+        double denom2 = 2.0 * cos2 * cos2 * (ndr * Math.tan(hoodAngle) - y);
+        if (!isFinite(denom2) || denom2 <= 1e-9 || !isFinite(ndr)) {
+            MyTelem.addData("SM.guard", "bad denom2");
+            return lastGood;
+        }
+
+        flyWheelSpeed = Math.sqrt(g * ndr * ndr / denom2);
+        if (!isFinite(flyWheelSpeed)) {
+            MyTelem.addData("SM.guard", "bad fly2");
+            return lastGood;
+        }
+
+        double turretVelCompOffset = Math.atan2(perpendicularComponent, ivr);
+
+        double turretAngle = Math.toDegrees(
+                Robot.currentPose.getHeading() - goalTheta + turretVelCompOffset
+        );
+        if (turretAngle > 180) turretAngle -= 360;
+
+        double[] out = new double[]{hoodAngle, flyWheelSpeed, turretAngle};
+
+        if (isFinite(out[0]) && isFinite(out[1]) && isFinite(out[2])) {
+            lastGood = out;
+        } else {
+            MyTelem.addData("SM.guard", "bad output");
+            return lastGood;
+        }
+
+        return out;
+    }
+
 }

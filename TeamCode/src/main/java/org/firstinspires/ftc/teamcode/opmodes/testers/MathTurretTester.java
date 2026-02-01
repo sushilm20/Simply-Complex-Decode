@@ -20,7 +20,7 @@ public class MathTurretTester extends LinearOpMode {
 
         GamepadEx gp1 = new GamepadEx(gamepad1);
         gp1.getGamepadButton(GamepadKeys.Button.A).whenPressed(
-                new TurretCommand(robot, Turret.TurretState.MATH_CAMERA)
+                new TurretCommand(robot, Turret.TurretState.MATH)
         );
 
         gp1.getGamepadButton(GamepadKeys.Button.A).whenReleased(
