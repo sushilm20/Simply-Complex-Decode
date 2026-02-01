@@ -44,7 +44,7 @@ public class Turret implements Subsystem {
                 setServoPos(TurretConstants.turretForwardPosition);
                 break;
             case MATH:
-                pointToGoalPinPoint(Robot.getEffectiveCoordinates());
+                pointToGoalMath();
                 break;
             case MATH_CAMERA:
                 LimelightCamera.TagTarget tag = Robot.getTargetTag();
@@ -66,22 +66,14 @@ public class Turret implements Subsystem {
         turretLeftServo.setPosition(pos);
         turretRightServo.setPosition(pos);
     }
-
-    private void pointToGoalCamera(LimelightCamera.TagTarget tag) {
-        if (tag == null || !tag.hasTarget) return;
-        double tX = tag.tX;
-        if (Math.abs(tX) < 0.5){
-            return;
-        }
-        double deltaPos = tX * SLOPE * P;
-        double targetAngleDeg = turretCommandPos - deltaPos;
-
-        double step = Range.clip(targetAngleDeg - turretCommandPos, -MAX_STEP_PER_LOOP, MAX_STEP_PER_LOOP);
-        setServoPos(turretCommandPos + step);
-
-
-        MyTelem.addData("Math Camera", true);
+    private void pointToGoalMath() {
+        double angleDeg = -1 * Robot.getTurretAngle(); //its like opposite idk why but just cuz
+        double servoPos = TurretConstants.OFFSET + TurretConstants.SLOPE * angleDeg;
+        if (servoPos > 1.0) servoPos = 1.0;
+        if (servoPos < 0.0) servoPos = 0.0;
+        setServoPos(servoPos);
     }
+
     private void pointToGoalPinPoint(Pose cur) {
         Pose goal = Robot.getGoalPose();
         double fieldAngle = Math.atan2(
@@ -99,6 +91,23 @@ public class Turret implements Subsystem {
         MyTelem.addData("Turret Servo Position", servoPos);
         MyTelem.addData("Turret Angle", angleDeg);
     }
+
+    private void pointToGoalCamera(LimelightCamera.TagTarget tag) {
+        if (tag == null || !tag.hasTarget) return;
+        double tX = tag.tX;
+        if (Math.abs(tX) < 0.5){
+            return;
+        }
+        double deltaPos = tX * SLOPE * P;
+        double targetAngleDeg = turretCommandPos - deltaPos;
+
+        double step = Range.clip(targetAngleDeg - turretCommandPos, -MAX_STEP_PER_LOOP, MAX_STEP_PER_LOOP);
+        setServoPos(turretCommandPos + step);
+
+
+        MyTelem.addData("Math Camera", true);
+    }
+
 
     public TurretState getState() {
         return state;
