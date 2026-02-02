@@ -22,14 +22,12 @@ public class IndexerTester extends LinearOpMode {
         Robot robot = new Robot(hardwareMap, false);
         GamepadEx gp1 = new GamepadEx(gamepad1);
         gp1.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenPressed(
-                new ParallelCommandGroup(
-                        new IndexerCommand(robot, Indexer.IndexState.OUT)
-                )
+                new IndexerCommand(robot, Indexer.IndexState.OUT)
+
         );
         gp1.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenReleased(
-                new ParallelCommandGroup(
-                        new IndexerCommand(robot, Indexer.IndexState.IN)
-                )
+                new IndexerCommand(robot, Indexer.IndexState.IN)
+
         );
 
         waitForStart();
