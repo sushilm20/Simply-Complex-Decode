@@ -10,6 +10,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.arcrobotics.ftclib.command.Subsystem;
 import com.arcrobotics.ftclib.controller.PIDController;
 import com.pedropathing.localization.Pose;
+import com.pedropathing.pathgen.MathFunctions;
 import com.pedropathing.pathgen.Vector;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -54,30 +55,31 @@ public class Shooter implements Subsystem {
                 currentVelocity = ShooterConstants.speedingVelocity;
                 break;
             case MATH:
-                double hoodAngle = setHood(Robot.getHoodAngle());
-                double rpm = getRPM(Robot.getShooterMathRPM(), hoodAngle);
+                double hoodAngle = Robot.getHoodAngle();
+                double hoodPos = setHood(hoodAngle);
+                double rpm = getRPM(Robot.getShooterMathRPM(), hoodPos);
                 setHood(hoodAngle);
+                currentVelocity = rpm;
                 MyTelem.addData("HOOD ANGLE", hoodAngle);
                 MyTelem.addData("HOOD POSITION", hoodServoPosition);
                 MyTelem.addData("RPM", rpm);
-                currentVelocity = rpm;
                 break;
         }
     }
     public double setHood(double angleRad) {
         double minAngle = ShooterMathConstants.HOOD_MIN_ANGLE; //0.32
         double maxAngle = ShooterMathConstants.HOOD_MAX_ANGLE; //0.17
-        double minServo = 0.17;
-        double maxServo = 0.32;
-        angleRad = Math.max(minAngle, Math.min(maxAngle, angleRad));
-        hoodServoPosition = minServo
-                + (angleRad - minAngle)
-                * (maxServo - minServo)
-                / (maxAngle - minAngle);
+        double servoHigh = 0.17;
+        double servoLow = 0.32;
+        double loA = Math.min(minAngle, maxAngle);
+        double hiA = Math.max(minAngle, maxAngle);
+        angleRad = MathFunctions.clamp(angleRad, loA, hiA);
+        hoodServoPosition = servoLow + (angleRad - loA) * (servoHigh - servoLow) / (hiA - loA);
         return hoodServoPosition;
     }
     public double getRPM(double velocity, double hood){
-        double hoodMultiplier = 2.79242 * hood * hood - 2.05502 * hood * 1.29534;
+        MyTelem.addData("VELOCITY", velocity);
+        double hoodMultiplier = 2.79242 * hood * hood - 2.05502 * hood + 1.29534;
         double baseRPM = 24.27316 * velocity - 1943.16341;
         MyTelem.addData("HOOD MULTIPLIER", hoodMultiplier);
         MyTelem.addData("BASE RPM", baseRPM);
@@ -103,7 +105,6 @@ public class Shooter implements Subsystem {
 
         MyTelem.addData("Shooter Current RPM", currentRPM);
         MyTelem.addData("Shooter Target RPM", targetRPM);
-        MyTelem.addData("Shooter Power", power * 13 / currentVoltage);
     }
     public boolean shooterAtRPM(){
         return Math.abs(shooterRPMPID.getPositionError()) <= 200;

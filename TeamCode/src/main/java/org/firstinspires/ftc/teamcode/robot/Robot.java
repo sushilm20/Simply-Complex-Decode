@@ -271,6 +271,10 @@ public class  Robot {
         double x = dist - ShooterMathConstants.PASS_THROUGH_POINT_RADIUS;
         double y = ShooterMathConstants.SCORE_HEIGHT;
         double a = ShooterMathConstants.SCORE_ANGLE;
+        MyTelem.addData("X", x);
+        MyTelem.addData("Y", y);
+        MyTelem.addData("a", a);
+        MyTelem.addData("robotToGoalVector", "(" + robotToGoalVector.getXComponent() + ", " + robotToGoalVector.getYComponent() + ", " + robotToGoalVector.getTheta() + ")");
 
         if (!isFinite(dist) || !isFinite(x) || x <= 1e-6) {
             MyTelem.addData("SM.guard", "bad dist/x");
@@ -281,7 +285,7 @@ public class  Robot {
         hoodAngle = MathFunctions.clamp(hoodAngle,
                 ShooterMathConstants.HOOD_MIN_ANGLE,
                 ShooterMathConstants.HOOD_MAX_ANGLE);
-
+        MyTelem.addData("HOOD ANGLE RAW (no vel comp)", hoodAngle);
         double cos = Math.cos(hoodAngle);
         double term = x * Math.tan(hoodAngle) - y;
         double denom1 = 2 * cos * cos * term;
@@ -307,13 +311,14 @@ public class  Robot {
             MyTelem.addData("SM.guard", "bad vel/theta");
             return lastGood;
         }
-
         double coordinateTheta = rvTheta - goalTheta;
         double parallelComponent = -Math.cos(coordinateTheta) * rvMag;
         double perpendicularComponent = Math.sin(coordinateTheta) * rvMag;
-
+        MyTelem.addData("RVMag", rvMag);
+        MyTelem.addData("RVTheta", rvTheta);
+        MyTelem.addData("goalTheta", goalTheta);
+        MyTelem.addData("parallel Component", parallelComponent);
         double vz = flyWheelSpeed * Math.sin(hoodAngle);
-
         double denomT = flyWheelSpeed * Math.cos(hoodAngle);
         if (!isFinite(denomT) || Math.abs(denomT) <= 1e-9) {
             MyTelem.addData("SM.guard", "bad time denom");
@@ -330,10 +335,9 @@ public class  Robot {
         }
 
         double ndr = nvr * time;
-
-        hoodAngle = MathFunctions.clamp(Math.atan2(vz, nvr),
-                ShooterMathConstants.HOOD_MIN_ANGLE,
-                ShooterMathConstants.HOOD_MAX_ANGLE);
+        MyTelem.addData("VZ", vz);
+        MyTelem.addData("NVR", nvr);
+        hoodAngle = Math.max(ShooterMathConstants.HOOD_MIN_ANGLE, Math.min(ShooterMathConstants.HOOD_MAX_ANGLE, Math.atan2(vz, nvr)));
 
         double cos2 = Math.cos(hoodAngle);
         double denom2 = 2.0 * cos2 * cos2 * (ndr * Math.tan(hoodAngle) - y);
@@ -354,7 +358,11 @@ public class  Robot {
                 Robot.currentPose.getHeading() - goalTheta + turretVelCompOffset
         );
         if (turretAngle > 180) turretAngle -= 360;
-
+        MyTelem.addData("FINAL TURRET", turretAngle);
+        MyTelem.addData("PERPENDICULAR COMPONENET", perpendicularComponent);
+        MyTelem.addData("IVR", ivr);
+        MyTelem.addData("FINAL VELOCITY", flyWheelSpeed);
+        MyTelem.addData("TURRET VEL COMP", turretVelCompOffset);
         double[] out = new double[]{hoodAngle, flyWheelSpeed, turretAngle};
 
         if (isFinite(out[0]) && isFinite(out[1]) && isFinite(out[2])) {
