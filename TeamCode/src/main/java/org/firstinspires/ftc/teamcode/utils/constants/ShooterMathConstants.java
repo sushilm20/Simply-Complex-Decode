@@ -9,4 +9,5 @@ public class ShooterMathConstants {
     public static double PASS_THROUGH_POINT_RADIUS = 5;
     public static double HOOD_MAX_ANGLE = Math.toRadians(55.861336); //0.32 servo pos
     public static double HOOD_MIN_ANGLE = Math.toRadians(37.288274); //0.17 servo pos
+    public static double perpMultiplier = 1;
 }

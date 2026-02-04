@@ -325,7 +325,7 @@ public class  Robot {
             return lastGood;
         }
         double time = x / denomT;
-
+        perpendicularComponent *= ShooterMathConstants.perpMultiplier;
         double ivr = x / time + parallelComponent;
         double nvr = Math.sqrt(ivr * ivr + perpendicularComponent * perpendicularComponent);
 
