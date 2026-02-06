@@ -41,14 +41,21 @@ public class TeleopRed extends LinearOpMode {
         gp2.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenReleased(new IntakeCommand(robot, Intake.IntakeState.OFF));
 
         gp2.getGamepadButton(GamepadKeys.Button.B).whenPressed(
-                new ParallelCommandGroup(
-                        new BlockerCommand(robot, Blocker.BlockerState.UNBLOCKED)
+                new SequentialCommandGroup(
+                        new IndexerCommand(robot, Indexer.IndexState.OUT),
+                        new WaitCommand(150),
+                        new TransferCommand(robot)
+
                 )
         );
         gp2.getGamepadButton(GamepadKeys.Button.B).whenReleased(
-                new ParallelCommandGroup(
-                        new BlockerCommand(robot, Blocker.BlockerState.BLOCKED)
-                ));
+                new SequentialCommandGroup(
+                        new IndexerCommand(robot, Indexer.IndexState.IN),
+                        new WaitCommand(400),
+                        new TransferCancelCommand(robot)
+
+                )
+        );
 
         gp2.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenPressed(
                 new ParallelCommandGroup(
@@ -97,21 +104,6 @@ public class TeleopRed extends LinearOpMode {
 
         gp1.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenReleased(
                 new InstantCommand(robot::stopHolding)
-        );
-
-        gp2.getGamepadButton(GamepadKeys.Button.DPAD_DOWN).whenPressed(
-                new SequentialCommandGroup(
-                        new IndexerCommand(robot, Indexer.IndexState.OUT),
-                        new WaitCommand(150),
-                        new IntakeCommand(robot, Intake.IntakeState.ON)
-                )
-        );
-
-        gp2.getGamepadButton(GamepadKeys.Button.DPAD_DOWN).whenReleased(
-                new SequentialCommandGroup(
-                        new IntakeCommand(robot, Intake.IntakeState.OFF),
-                        new IndexerCommand(robot, Indexer.IndexState.IN)
-                )
         );
 
 //        gp1.getGamepadButton(GamepadKeys.Button.A).whenPressed(
