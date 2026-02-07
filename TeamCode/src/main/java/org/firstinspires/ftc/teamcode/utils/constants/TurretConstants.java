@@ -5,7 +5,7 @@ import com.acmerobotics.dashboard.config.Config;
 @Config
 public class TurretConstants {
     public static double turretForwardPosition = 0.5;
-    public static double SLOPE = 0.00244444;
+    public static double SLOPE = -0.00244444;
     public static double OFFSET = 0.5;
     public static double MAX_STEP_PER_LOOP = 0.02;
     public static double tolerance = 0.001;

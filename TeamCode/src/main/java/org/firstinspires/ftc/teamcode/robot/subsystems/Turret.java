@@ -30,6 +30,7 @@ public class Turret implements Subsystem {
     // Forward = 0.5  at   0°
     // 180°    = 0.06 0.44
     // slope = 0.002444444 (servoPos/degree)
+    // new slope = -0.002444444
 
     public Turret(Servo turretLeftServo, Servo turretRightServo) {
         this.turretLeftServo = turretLeftServo;
@@ -67,7 +68,8 @@ public class Turret implements Subsystem {
         turretRightServo.setPosition(pos);
     }
     private void pointToGoalMath() {
-        double angleDeg = -1 * Robot.getTurretAngle(); //its like opposite idk why but just cuz
+//        double angleDeg = -1 * Robot.getTurretAngle(); //its like opposite idk why but just cuz
+        double angleDeg = Robot.getTurretAngle(); //its like opposite idk why but just cuz
         double servoPos = TurretConstants.OFFSET + TurretConstants.SLOPE * angleDeg;
         if (servoPos > 1.0) servoPos = 1.0;
         if (servoPos < 0.0) servoPos = 0.0;
