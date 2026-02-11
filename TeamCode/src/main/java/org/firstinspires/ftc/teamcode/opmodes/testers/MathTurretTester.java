@@ -3,7 +3,6 @@ package org.firstinspires.ftc.teamcode.opmodes.testers;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.OpModeRegistrar;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.robot.Robot;
@@ -24,7 +23,7 @@ public class MathTurretTester extends LinearOpMode {
         );
 
         gp1.getGamepadButton(GamepadKeys.Button.A).whenReleased(
-                new TurretCommand(robot, Turret.TurretState.FRONT)
+                new TurretCommand(robot, Turret.TurretState.BACK)
         );
 
         while(opModeIsActive()){
