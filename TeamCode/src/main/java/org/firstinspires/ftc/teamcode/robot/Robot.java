@@ -217,6 +217,15 @@ public class  Robot {
 ;        }
     }
 
+    public static Pose getGoalPoseLong(){
+        if(red){
+            return new Pose(144, 144);
+        }
+        else{
+            return new Pose(0, 144);
+        }
+    }
+
     public static LimelightCamera.TagTarget getTargetTag(){
         return limelightCamera.getTargetTag();
     }
@@ -246,6 +255,13 @@ public class  Robot {
 
     private static Vector getRobotToGoalVector() {
         Pose goalPose = getGoalPose();
+        Pose robotPose = Robot.currentPose;
+        Vector vector = new Vector(0, 0);
+        vector.setOrthogonalComponents(goalPose.getX() - robotPose.getX(), goalPose.getY() - robotPose.getY());
+        return vector;
+    }
+    private static Vector getRobotToGoalVectorTurret() {
+        Pose goalPose = getGoalPoseLong();
         Pose robotPose = Robot.currentPose;
         Vector vector = new Vector(0, 0);
         vector.setOrthogonalComponents(goalPose.getX() - robotPose.getX(), goalPose.getY() - robotPose.getY());
@@ -307,7 +323,7 @@ public class  Robot {
 
         double rvMag = robotVelocity.getMagnitude();
         double rvTheta = robotVelocity.getTheta();
-        double goalTheta = robotToGoalVector.getTheta();
+        double goalTheta = getRobotToGoalVectorTurret().getTheta();
 
         if (!isFinite(rvMag) || !isFinite(rvTheta) || !isFinite(goalTheta)) {
             MyTelem.addData("SM.guard", "bad vel/theta");
@@ -359,7 +375,7 @@ public class  Robot {
         double turretAngle = Math.toDegrees(
                 Robot.currentPose.getHeading() - goalTheta + turretVelCompOffset
         );
-        if (turretAngle > 180) turretAngle -= 360;
+        if (turretAngle < 0) turretAngle += 360;
         MyTelem.addData("FINAL TURRET", turretAngle);
         MyTelem.addData("PERPENDICULAR COMPONENET", perpendicularComponent);
         MyTelem.addData("IVR", ivr);

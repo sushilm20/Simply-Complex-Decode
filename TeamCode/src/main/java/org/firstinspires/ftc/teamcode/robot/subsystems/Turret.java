@@ -1,23 +1,17 @@
 package org.firstinspires.ftc.teamcode.robot.subsystems;
 
-import static org.firstinspires.ftc.teamcode.utils.constants.TurretConstants.D;
-import static org.firstinspires.ftc.teamcode.utils.constants.TurretConstants.F;
-import static org.firstinspires.ftc.teamcode.utils.constants.TurretConstants.I;
 import static org.firstinspires.ftc.teamcode.utils.constants.TurretConstants.MAX_STEP_PER_LOOP;
 import static org.firstinspires.ftc.teamcode.utils.constants.TurretConstants.P;
 import static org.firstinspires.ftc.teamcode.utils.constants.TurretConstants.SLOPE;
 import static org.firstinspires.ftc.teamcode.utils.constants.TurretConstants.closeTolerance;
-import static org.firstinspires.ftc.teamcode.utils.constants.TurretConstants.tolerance;
 
 import com.arcrobotics.ftclib.command.Subsystem;
-import com.arcrobotics.ftclib.controller.PIDController;
 import com.pedropathing.localization.Pose;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.utils.MyTelem;
-import org.firstinspires.ftc.teamcode.utils.constants.ShooterConstants;
 import org.firstinspires.ftc.teamcode.utils.constants.TurretConstants;
 
 public class Turret implements Subsystem {
@@ -35,13 +29,13 @@ public class Turret implements Subsystem {
     public Turret(Servo turretLeftServo, Servo turretRightServo) {
         this.turretLeftServo = turretLeftServo;
         this.turretRightServo = turretRightServo;
-        state = TurretState.FRONT;
+        state = TurretState.BACK;
     }
 
     public void setState(TurretState state) {
         this.state = state;
         switch (state) {
-            case FRONT:
+            case BACK:
                 setServoPos(TurretConstants.turretForwardPosition);
                 break;
             case MATH:
@@ -69,8 +63,10 @@ public class Turret implements Subsystem {
     }
     private void pointToGoalMath() {
 //        double angleDeg = -1 * Robot.getTurretAngle(); //its like opposite idk why but just cuz
-        double angleDeg = Robot.getTurretAngle(); //its like opposite idk why but just cuz
+        double angleDeg = Robot.getTurretAngle() - 180.0; //its like opposite idk why but just cuz
+
         double servoPos = TurretConstants.OFFSET + TurretConstants.SLOPE * angleDeg;
+
         if (servoPos > 1.0) servoPos = 1.0;
         if (servoPos < 0.0) servoPos = 0.0;
         setServoPos(servoPos);
@@ -82,7 +78,7 @@ public class Turret implements Subsystem {
                 goal.getY() - cur.getY(),
                 goal.getX() - cur.getX()
         );
-        double relAngle = fieldAngle - cur.getHeading();
+        double relAngle = fieldAngle - cur.getHeading() - Math.PI;
         while (relAngle > Math.PI)  relAngle -= 2 * Math.PI;
         while (relAngle < -Math.PI) relAngle += 2 * Math.PI;
         double angleDeg = Math.toDegrees(relAngle);
@@ -120,6 +116,6 @@ public class Turret implements Subsystem {
     }
 
     public enum TurretState {
-        FRONT, MATH, MATH_CAMERA
+        BACK, MATH, MATH_CAMERA
     }
 }
