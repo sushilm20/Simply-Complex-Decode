@@ -35,6 +35,7 @@ import org.firstinspires.ftc.teamcode.robot.subsystems.Shooter;
 import org.firstinspires.ftc.teamcode.robot.subsystems.Turret;
 import org.firstinspires.ftc.teamcode.utils.MyTelem;
 import org.firstinspires.ftc.teamcode.utils.constants.BotConstants;
+import org.firstinspires.ftc.teamcode.utils.constants.ShooterConstants;
 import org.firstinspires.ftc.teamcode.utils.constants.ShooterMathConstants;
 import org.firstinspires.ftc.teamcode.utils.constants.TurretConstants;
 
@@ -85,6 +86,14 @@ public class  Robot {
         CommandScheduler.getInstance().reset();
 
         auto = isAuto;
+
+        if (auto) {
+            ShooterConstants.startingVelocity = ShooterConstants.speedingVelocity;
+            ShooterConstants.karthikstfu = false;
+        } else{
+            ShooterConstants.startingVelocity = 0;
+        }
+
         TurretConstants.OFFSET = 0.5;
 
         follower = new Follower(hm, FConstants.class, LConstants.class);
@@ -164,6 +173,7 @@ public class  Robot {
 
 
         velocity = follower.getVelocity();
+        MyTelem.addData("Current of Transfer Motor", intakeMotor2.getCurrent(CurrentUnit.AMPS));
         MyTelem.addData("distance from goal", getDistanceFromGoal());
         MyTelem.addData("Current Pose", currentPose);
         MyTelem.addData("Velocity", velocity.getMagnitude());

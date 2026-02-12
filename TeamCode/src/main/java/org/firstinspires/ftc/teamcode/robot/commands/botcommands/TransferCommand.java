@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode.robot.commands.botcommands;
 
+import static org.firstinspires.ftc.teamcode.robot.subsystems.Intake.IntakeState.OFF;
+import static org.firstinspires.ftc.teamcode.robot.subsystems.Intake.IntakeState.ON;
+
 import com.acmerobotics.dashboard.config.Config;
 import com.arcrobotics.ftclib.command.ParallelCommandGroup;
 import com.arcrobotics.ftclib.command.ParallelDeadlineGroup;
@@ -22,11 +25,9 @@ import org.firstinspires.ftc.teamcode.utils.constants.BotConstants;
 
 @Config
 public class TransferCommand extends SequentialCommandGroup {
-    public static int speedUpDelay = 0; 
-    public static int intakeWait = 0;
-    public static int blockerWait = 0;
     public TransferCommand(Robot robot, Shooter.ShooterState shooterState) {
         addCommands(
+                new IntakeCommand(robot, OFF),
                 new ShooterCommand(robot, shooterState),
                 new ParallelRaceGroup(
                         new WaitUntilCommand(() -> robot.shooter.shooterAtRPM()),
@@ -34,8 +35,8 @@ public class TransferCommand extends SequentialCommandGroup {
                 ),
                 new BlockerCommand(robot, Blocker.BlockerState.UNBLOCKED),
                 new WaitCommand(200),
-                new IntakeCommand(robot, Intake.IntakeState.ON),
-                new WaitCommand(750)
+                new IntakeCommand(robot, ON),
+                new WaitCommand(450)
         );
     }
     public TransferCommand(Robot robot){
@@ -43,7 +44,7 @@ public class TransferCommand extends SequentialCommandGroup {
     }
 
     private static Shooter.ShooterState determineShooterState(Robot robot) {
-        BotConstants.BotState state = Robot.botState;
+        BotConstants.BotState state = robot.botState;
         return state == BotConstants.BotState.MATH ? Shooter.ShooterState.MATH :
                         state == BotConstants.BotState.MANUAL ? Shooter.ShooterState.CLOSE :
                                 Shooter.ShooterState.TESTING;

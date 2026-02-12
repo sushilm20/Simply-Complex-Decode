@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode.robot.subsystems;
 
 import static org.firstinspires.ftc.teamcode.utils.constants.ShooterConstants.hoodServoPosition;
 import static org.firstinspires.ftc.teamcode.utils.constants.ShooterConstants.RPM_OFFSET;
+import static org.firstinspires.ftc.teamcode.utils.constants.ShooterConstants.karthikstfu;
+import static org.firstinspires.ftc.teamcode.utils.constants.ShooterConstants.speedingVelocity;
 import static org.firstinspires.ftc.teamcode.utils.constants.ShooterConstants.startingVelocity;
 import static org.firstinspires.ftc.teamcode.utils.constants.ShooterConstants.tuningTestingRPM;
 import static org.firstinspires.ftc.teamcode.utils.constants.ShooterConstants.currentVelocity;
@@ -107,7 +109,7 @@ public class Shooter implements Subsystem {
         MyTelem.addData("Shooter Target RPM", targetRPM);
     }
     public boolean shooterAtRPM(){
-        return Math.abs(shooterRPMPID.getPositionError()) <= 200;
+        return shooterRPMPID.getPositionError() <= 100;
     }
 
     public boolean atRPM() {
@@ -122,8 +124,18 @@ public class Shooter implements Subsystem {
     public void periodic() {
         setState(state);
         shooterRPMPID.setPID(ShooterConstants.kp, ShooterConstants.ki, ShooterConstants.kd);
-        hoodServo.setPosition(hoodServoPosition);
-        setShooterPIDPower(currentVelocity);
+        if (Robot.auto && ShooterConstants.karthikstfu) {
+            hoodServo.setPosition(0.32);
+        }
+        else {
+            hoodServo.setPosition(hoodServoPosition);
+        }
+        if (karthikstfu && Robot.auto) {
+            setShooterPIDPower(speedingVelocity);
+        }
+        else {
+            setShooterPIDPower(currentVelocity);
+        }
     }
 
     public enum ShooterState {
