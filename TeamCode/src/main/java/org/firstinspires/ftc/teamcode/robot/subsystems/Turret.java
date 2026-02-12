@@ -29,10 +29,10 @@ public class Turret implements Subsystem {
     public Turret(Servo turretLeftServo, Servo turretRightServo) {
         this.turretLeftServo = turretLeftServo;
         this.turretRightServo = turretRightServo;
-        state = TurretState.BACK;
     }
 
     public void setState(TurretState state) {
+        if (state == null) return;
         this.state = state;
         switch (state) {
             case BACK:
@@ -41,18 +41,18 @@ public class Turret implements Subsystem {
             case MATH:
                 pointToGoalMath();
                 break;
-            case MATH_CAMERA:
-                LimelightCamera.TagTarget tag = Robot.getTargetTag();
-                if (tag == null || !tag.hasTarget) {
-                    pointToGoalPinPoint(Robot.getEffectiveCoordinates());
-                } else{
-                    if (Math.abs(tag.tX) > closeTolerance && Robot.auto) {
-                        pointToGoalPinPoint(Robot.getEffectiveCoordinates());
-                        return;
-                    }
-                    pointToGoalCamera(tag);
-                }
-                break;
+//            case MATH_CAMERA:
+//                LimelightCamera.TagTarget tag = Robot.getTargetTag();
+//                if (tag == null || !tag.hasTarget) {
+//                    pointToGoalPinPoint(Robot.getEffectiveCoordinates());
+//                } else{
+//                    if (Math.abs(tag.tX) > closeTolerance && Robot.auto) {
+//                        pointToGoalPinPoint(Robot.getEffectiveCoordinates());
+//                        return;
+//                    }
+//                    pointToGoalCamera(tag);
+//                }
+//                break;
         }
     }
     private void setServoPos(double pos) {
@@ -116,6 +116,6 @@ public class Turret implements Subsystem {
     }
 
     public enum TurretState {
-        BACK, MATH, MATH_CAMERA
+        BACK, MATH
     }
 }
