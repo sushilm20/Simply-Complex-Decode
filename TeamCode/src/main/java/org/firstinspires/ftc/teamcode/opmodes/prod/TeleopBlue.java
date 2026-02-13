@@ -59,13 +59,16 @@ public class TeleopBlue extends LinearOpMode {
         gp2.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenPressed(
                 new ParallelCommandGroup(
                         new TurretCommand(robot, Turret.TurretState.MATH),
-                        new ShooterCommand(robot, Shooter.ShooterState.SPEEDING_UP)
+                        new ShooterCommand(robot, Shooter.ShooterState.SPEEDING_UP),
+                        new IntakeCommand(robot, Intake.IntakeState.SOLOFRONT)
+
                 )
         );
         gp2.getGamepadButton(GamepadKeys.Button.DPAD_UP).whenReleased(
                 new ParallelCommandGroup(
                         new TurretCommand(robot, Turret.TurretState.BACK),
-                        new ShooterCommand(robot, Shooter.ShooterState.STOP)
+                        new ShooterCommand(robot, Shooter.ShooterState.STOP),
+                    new IntakeCommand(robot, Intake.IntakeState.OFF)
                 )
         );
 
@@ -98,6 +101,8 @@ public class TeleopBlue extends LinearOpMode {
         gp1.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenPressed(
                 new InstantCommand(robot::holding)
         );
+
+        gp1.getGamepadButton(GamepadKeys.Button.DPAD_DOWN).whenPressed(new InstantCommand(()->robot.setResetPose()));
 
         gp1.getGamepadButton(GamepadKeys.Button.RIGHT_BUMPER).whenReleased(
                 new InstantCommand(robot::stopHolding)

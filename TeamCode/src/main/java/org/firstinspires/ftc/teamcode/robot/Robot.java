@@ -49,6 +49,7 @@ public class  Robot {
     public static boolean auto = false;
     public static Vector velocity = new Vector(new Point(0,0));
     public static Pose currentPose = new Pose(0,0,0);
+    public static boolean resetPose = false;
     public boolean holding;
     public static boolean red;
     public static double voltage = 12;
@@ -145,6 +146,7 @@ public class  Robot {
         voltage = hm.voltageSensor.iterator().next().getVoltage();
     }
 
+
     public void update(){
         CommandScheduler.getInstance().run();
         follower.update();
@@ -170,6 +172,15 @@ public class  Robot {
             previousVoltageTime = timer.time(TimeUnit.MILLISECONDS);
             voltage = voltageSensor.getVoltage();
         }
+        if(resetPose){
+            if(red){
+                follower.setPose(new Pose(8,8, Math.toRadians(0)));
+            }
+            else{
+                follower.setPose(new Pose(136,8, Math.toRadians(180)));
+            }
+            resetPose=false;
+        }
 
 
         velocity = follower.getVelocity();
@@ -178,6 +189,9 @@ public class  Robot {
         MyTelem.addData("Current Pose", currentPose);
         MyTelem.addData("Velocity", velocity.getMagnitude());
         MyTelem.update();
+    }
+    public void setResetPose(){
+        resetPose = true;
     }
 
     public void stop(){
@@ -229,7 +243,7 @@ public class  Robot {
 
     public static Pose getGoalPoseLong(){
         if(red){
-            return new Pose(144, 144);
+            return new Pose(144-15, 144-11);
         }
         else{
             return new Pose(0, 144);
