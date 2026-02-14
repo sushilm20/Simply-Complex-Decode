@@ -223,7 +223,7 @@ public class CloseSideAuto extends OpMode {
                     .addPath(new BezierLine(shootingPose, firstIntake))
                     .setTangentHeadingInterpolation()
                     .setReversed(false)
-                    .setZeroPowerAccelerationMultiplier(2)
+                    .setZeroPowerAccelerationMultiplier(5)
 //                    .setLinearHeadingInterpolation(Math.toRadians(heading180), Math.toRadians(heading180))
                     .build();
             Path5 = follower.pathBuilder()

@@ -73,6 +73,7 @@ public class FarSideAuto extends OpMode {
             new FollowPathCommand(robot.follower, paths.Path4),
             shootThree(),
             new FollowPathCommand(robot.follower, paths.Path5),
+            new WaitCommand(300),
             new IntakeCommand(robot, Intake.IntakeState.SOLOFRONT),
             new FollowPathCommand(robot.follower, paths.Path6),
             shootThree()
@@ -86,6 +87,7 @@ public class FarSideAuto extends OpMode {
     private CommandGroupBase shootThree() {
         return new SequentialCommandGroup(
                 new TransferCommand(robot),
+                new WaitCommand(300),
                 new TransferCancelCommand(robot, Shooter.ShooterState.SPEEDING_UP),
                 new IntakeCommand(robot, Intake.IntakeState.ON)
         );
@@ -121,7 +123,6 @@ public class FarSideAuto extends OpMode {
             Pose thirdTarget = FarSideAutoPoseData.mirror(FarSideAutoPoseData.THIRD_TARGET, color);
             double heading90 = FarSideAutoPoseData.mirrorHeading(90, color);
             double heading180 = FarSideAutoPoseData.mirrorHeading(180, color);
-
             follower.setStartingPose(startPose);
 
             Path1 = follower.pathBuilder()
