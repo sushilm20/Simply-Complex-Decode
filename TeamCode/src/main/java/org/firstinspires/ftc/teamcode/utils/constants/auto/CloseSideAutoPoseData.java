@@ -2,6 +2,9 @@ package org.firstinspires.ftc.teamcode.utils.constants.auto;
 
 import static org.firstinspires.ftc.teamcode.utils.constants.auto.AutoConstants.leverIntakeX;
 import static org.firstinspires.ftc.teamcode.utils.constants.auto.AutoConstants.leverIntakeY;
+import static org.firstinspires.ftc.teamcode.utils.constants.auto.AutoConstants.leverX;
+import static org.firstinspires.ftc.teamcode.utils.constants.auto.AutoConstants.leverY;
+import static org.firstinspires.ftc.teamcode.utils.constants.auto.AutoConstants.leverYNew;
 import static org.firstinspires.ftc.teamcode.utils.constants.auto.AutoConstants.startHeading;
 import static org.firstinspires.ftc.teamcode.utils.constants.auto.AutoConstants.startX;
 import static org.firstinspires.ftc.teamcode.utils.constants.auto.AutoConstants.startY;
@@ -11,6 +14,8 @@ import com.pedropathing.localization.Pose;
 
 @Config
 public class CloseSideAutoPoseData {
+    public static final Pose LEVER_SECOND     = new Pose(leverX, leverYNew);
+
     public static final Pose START_POSE     = new Pose(startX, startY, Math.toRadians(startHeading));
     public static final Pose SHOOTING_POSE  = new Pose(AutoConstants.shootingX, AutoConstants.shootingY);
     public static final Pose MID1_CURVE     = new Pose(52.3, 85);     // path2 control point

@@ -251,10 +251,11 @@ public class  Robot {
 
     public static Pose getGoalPoseLong(){
         if(red){
-            return new Pose(144-15, 144-11);
+            return new Pose(144-14.5, 144-12);
         }
         else{
-            return new Pose(15, 144-11);
+            return new Pose(14.5, 144-12
+            );
         }
     }
 
@@ -319,8 +320,8 @@ public class  Robot {
         double g = 32.174 * 12;
         double dist = robotToGoalVector.getMagnitude();
         double x = dist - ShooterMathConstants.PASS_THROUGH_POINT_RADIUS;
-        double y = ShooterMathConstants.SCORE_HEIGHT;
-        double a = ShooterMathConstants.SCORE_ANGLE;
+        double y = auto ? ShooterMathConstants.SCORE_HEIGHT_AUTO : ShooterMathConstants.SCORE_HEIGHT;
+        double a = auto ? ShooterMathConstants.SCORE_AUTO_ANGLE : ShooterMathConstants.SCORE_ANGLE;
         MyTelem.addData("X", x);
         MyTelem.addData("Y", y);
         MyTelem.addData("a", a);
@@ -396,7 +397,7 @@ public class  Robot {
             return lastGood;
         }
 
-        flyWheelSpeed = Math.sqrt(g * ndr * ndr / denom2);
+//        flyWheelSpeed = Math.sqrt(g * ndr * ndr / denom2);
         if (!isFinite(flyWheelSpeed)) {
             MyTelem.addData("SM.guard", "bad fly2");
             return lastGood;
