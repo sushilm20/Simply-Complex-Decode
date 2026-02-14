@@ -7,7 +7,7 @@ import com.pedropathing.localization.Pose;
 public class FarSideAutoPoseData {
 
     public static final Pose START_POSE =
-            new Pose(56.000, 8.000);
+            new Pose(56.000, 8.000, Math.toRadians(90));
 
     public static final Pose MID1_CURVE =
             new Pose(53.000, 38.000);
