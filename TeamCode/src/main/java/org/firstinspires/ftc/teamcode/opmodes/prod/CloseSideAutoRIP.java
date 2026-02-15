@@ -90,28 +90,30 @@ public class CloseSideAutoRIP extends OpMode {
                 shootThree(),
                 new FollowPathCommand(robot.follower, paths.LeverPath2),
                 new IntakeCommand(robot, Intake.IntakeState.ON),
-                new FollowPathCommand(robot.follower, paths.LeverIntakePath2),
-                new WaitCommand(500),
+                new WaitCommand(800),
+//                new FollowPathCommand(robot.follower, paths.LeverIntakePath2),
+//                new WaitCommand(500),
                 new ParallelCommandGroup(
                         new FollowPathCommand(robot.follower, paths.LeverReturnPath2),
-                        new SequentialCommandGroup(
-                                new IntakeCommand(robot, Intake.IntakeState.OFF),
-                                new WaitCommand(300),
-                                new IntakeCommand(robot, Intake.IntakeState.SOLOFRONT)
-                        )
+//                        new SequentialCommandGroup(
+//                                new IntakeCommand(robot, Intake.IntakeState.OFF),
+//                                new WaitCommand(300),
+                        new IntakeCommand(robot, Intake.IntakeState.SOLOFRONT)
+//                        )
                 ),
                 shootThree(),
                 new FollowPathCommand(robot.follower, paths.LeverPath3),
                 new IntakeCommand(robot, Intake.IntakeState.ON),
-                new FollowPathCommand(robot.follower, paths.LeverIntakePath3),
-                new WaitCommand(500),
+                new WaitCommand(800),
+//                new FollowPathCommand(robot.follower, paths.LeverIntakePath2),
+//                new WaitCommand(500),
                 new ParallelCommandGroup(
                         new FollowPathCommand(robot.follower, paths.LeverReturnPath3),
-                        new SequentialCommandGroup(
-                                new IntakeCommand(robot, Intake.IntakeState.OFF),
-                                new WaitCommand(300),
-                                new IntakeCommand(robot, Intake.IntakeState.SOLOFRONT)
-                        )
+//                        new SequentialCommandGroup(
+//                                new IntakeCommand(robot, Intake.IntakeState.OFF),
+//                                new WaitCommand(300),
+                        new IntakeCommand(robot, Intake.IntakeState.SOLOFRONT)
+//                        )
                 ),
                 shootThree(),
                 new IntakeCommand(robot, Intake.IntakeState.ON),
@@ -175,6 +177,7 @@ public class CloseSideAutoRIP extends OpMode {
             Pose mid3Curve = CloseSideAutoPoseData.mirror(CloseSideAutoPoseData.MID3_CURVE, color);
             Pose finalIntake = CloseSideAutoPoseData.mirror(CloseSideAutoPoseData.FINAL_INTAKE, color);
             Pose leverPose = CloseSideAutoPoseData.mirror(CloseSideAutoPoseData.LEVER, color);
+            Pose leverPose2 = CloseSideAutoPoseData.mirror(CloseSideAutoPoseData.LEVER_SECOND, color);
             Pose leverIntakePose = CloseSideAutoPoseData.mirror(CloseSideAutoPoseData.LEVER_INTAKE, color);
             double heading180 = CloseSideAutoPoseData.mirrorHeading(180, color);
             double leverHitHeading = CloseSideAutoPoseData.mirrorHeading(AutoConstants.leverHitHeading, color);
@@ -184,6 +187,7 @@ public class CloseSideAutoRIP extends OpMode {
             Path1 = follower.pathBuilder()
                     .addPath(new BezierLine(startPose, shootingPose))
                     .setTangentHeadingInterpolation()
+                    .setZeroPowerAccelerationMultiplier(3)
                     .setReversed(false)
                     .build();
             Path2 = follower.pathBuilder()
@@ -191,7 +195,7 @@ public class CloseSideAutoRIP extends OpMode {
                     .setLinearHeadingInterpolation(Math.toRadians(heading180), Math.toRadians(heading180))
 //                    .setTangentHeadingInterpolation()
 //                    .setReversed(false)
-                    .setZeroPowerAccelerationMultiplier(6)
+                    .setZeroPowerAccelerationMultiplier(3)
                     .build();
             Path3 = follower.pathBuilder()
                     .addPath(new BezierLine(secondIntake, shootingPose))
@@ -213,17 +217,18 @@ public class CloseSideAutoRIP extends OpMode {
                     .setReversed(true)
                     .build();
             LeverPath2 = follower.pathBuilder()
-                    .addPath(new BezierLine(shootingPose, leverPose))
+                    .addPath(new BezierLine(shootingPose, leverPose2))
                     .setLinearHeadingInterpolation(Math.toRadians(heading180), Math.toRadians(leverHitHeading))
                     .setZeroPowerAccelerationMultiplier(3)
                     .build();
-            LeverIntakePath2 = follower.pathBuilder()
-                    .addPath(new BezierLine(leverPose, leverIntakePose))
-                    .setLinearHeadingInterpolation(Math.toRadians(leverHitHeading), Math.toRadians(leverHeading))
-                    .build();
+//            LeverIntakePath2 = follower.pathBuilder()
+//                    .addPath(new BezierLine(leverPose, leverIntakePose))
+//                    .setLinearHeadingInterpolation(Math.toRadians(leverHitHeading), Math.toRadians(leverHeading))
+//                    .build();
             LeverReturnPath2 = follower.pathBuilder()
-                    .addPath(new BezierLine(leverIntakePose, shootingPose))
+                    .addPath(new BezierLine(leverPose2, shootingPose))
                     .setTangentHeadingInterpolation()
+                    .setZeroPowerAccelerationMultiplier(3)
                     .setReversed(true)
                     .build();
             LeverPath3 = follower.pathBuilder()
@@ -231,10 +236,10 @@ public class CloseSideAutoRIP extends OpMode {
                     .setLinearHeadingInterpolation(Math.toRadians(heading180), Math.toRadians(leverHitHeading))
                     .setZeroPowerAccelerationMultiplier(3)
                     .build();
-            LeverIntakePath3 = follower.pathBuilder()
-                    .addPath(new BezierLine(leverPose, leverIntakePose))
-                    .setLinearHeadingInterpolation(Math.toRadians(leverHitHeading), Math.toRadians(leverHeading))
-                    .build();
+//            LeverIntakePath3 = follower.pathBuilder()
+//                    .addPath(new BezierLine(leverPose, leverIntakePose))
+//                    .setLinearHeadingInterpolation(Math.toRadians(leverHitHeading), Math.toRadians(leverHeading))
+//                    .build();
             LeverReturnPath3 = follower.pathBuilder()
                     .addPath(new BezierLine(leverIntakePose, shootingPose))
                     .setTangentHeadingInterpolation()
@@ -244,7 +249,7 @@ public class CloseSideAutoRIP extends OpMode {
                     .addPath(new BezierLine(shootingPose, firstIntake))
                     .setTangentHeadingInterpolation()
                     .setReversed(false)
-                    .setZeroPowerAccelerationMultiplier(5)
+                    .setZeroPowerAccelerationMultiplier(3)
 //                    .setLinearHeadingInterpolation(Math.toRadians(heading180), Math.toRadians(heading180))
                     .build();
             Path5 = follower.pathBuilder()

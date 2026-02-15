@@ -14,7 +14,7 @@ public class AutoConstants {
     public static double shootingY = 80;
     public static double firstIntakeX = 22;
     public static double secondIntakeX = 17;
-    public static double leverYNew = 63.5;
+    public static double leverYNew = 63.25;
     public static double leverIntakeX = 13;
     public static double leverIntakeY = 59;
     public static double leverPoseX = 35; //control point
@@ -23,6 +23,6 @@ public class AutoConstants {
     public static double startX = 18.91;
     public static double startY = 122.4;
     public static double leverX = 13.5;
-    public static double leverY = 63.5;
+    public static double leverY = 63.25;
 
 }
