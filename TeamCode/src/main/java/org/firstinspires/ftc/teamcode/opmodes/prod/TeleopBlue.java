@@ -119,12 +119,10 @@ public class TeleopBlue extends LinearOpMode {
             // Drive with gamepad 1
             robot.follower.setTeleOpMovementVectors(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x * BotConstants.turnSpeed, true);
 
-            // Manual turret control from GP2 right stick
+            // Manual turret control from GP2 right stick or GP1 left bumper
             if (Math.abs(gamepad2.right_stick_x) > 0.2) {
                 double power = gamepad2.right_stick_x > 0 ? TurretConstants.MANUAL_TURRET_POWER : -TurretConstants.MANUAL_TURRET_POWER;
                 robot.turret.setManualControl(true, power);
-            } else if (gamepad1.right_bumper) {
-                robot.turret.setManualControl(true, TurretConstants.MANUAL_TURRET_POWER);
             } else if (gamepad1.left_bumper) {
                 robot.turret.setManualControl(true, -TurretConstants.MANUAL_TURRET_POWER);
             } else {
