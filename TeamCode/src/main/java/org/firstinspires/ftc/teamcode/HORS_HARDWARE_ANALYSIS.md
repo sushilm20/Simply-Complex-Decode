@@ -172,18 +172,27 @@ utils/
 
 #### Flywheel / Shooter Constants
 
+> **Note:** The large differences in PID coefficients and RPM targets between MAINHORS26 and
+> SC-Decode reflect fundamentally different hardware designs. MAINHORS26 uses a custom PIDF
+> controller operating on raw RPM error (small kP like 0.00146), while SC-Decode uses an FTCLib
+> PID controller operating on encoder ticks (large kP like 100000). The feedforward coefficients
+> also differ in units: HORS kF is a voltage-compensated multiplier, while SC-Decode kf is a
+> per-tick-per-second factor. RPM targets differ because the robots use different flywheel
+> motors/gear ratios and game-distance requirements. **Do not mix constants between the two
+> systems without re-tuning.**
+
 | MAINHORS26 Constant | Value | SC-Decode Equivalent | Notes |
 |---|---|---|---|
-| `CLOSE_kP` | 0.00146 | `ShooterConstants.kp` (100000) | Different PID approach |
+| `CLOSE_kP` | 0.00146 | `ShooterConstants.kp` (100000) | Different PID units (RPM error vs tick error) |
 | `CLOSE_kI` | 0.0027 | — | Not used in SC-Decode |
 | `CLOSE_kD` | 0.00002 | `ShooterConstants.kd` (0) | |
-| `CLOSE_kF` | 1.72 | `ShooterConstants.kf` (0.000175) | |
+| `CLOSE_kF` | 1.72 | `ShooterConstants.kf` (0.000175) | Different units (voltage-compensated vs per-tick) |
 | `FAR_kP` | 0.00158 | — | HORS has dual PIDF modes |
 | `FAR_kI` | 0.0040 | — | |
 | `FAR_kD` | 0.00001 | — | |
 | `FAR_kF` | 1.92 | — | |
 | `TICKS_PER_REV` | 28.0 | `ShooterConstants.TICKS_PER_REV` (28.0) | Same |
-| `closeRPM` | 2600 | `ShooterConstants.CLOSE_RPM` (4100) | Different RPM targets |
+| `closeRPM` | 2600 | `ShooterConstants.CLOSE_RPM` (4100) | Different motors/gear ratios |
 | `farRPM` | 3390 | — | HORS-specific |
 | `RPM_SWITCH_THRESHOLD` | 3000.0 | — | HORS-specific dual-mode |
 | `rpmTolerance` | 45.0 | `ShooterConstants.rpm_tolerance` | |
@@ -220,9 +229,14 @@ utils/
 
 #### Turret Constants
 
+> **Note:** MAINHORS26 uses a DC motor-based turret with encoder PID (kP=1.0 on encoder
+> tick error), while SC-Decode uses dual servos with geometric angle math (P=0.08 on angular
+> error). The 12.5x kP difference is expected — see Section 7.1 for details on the motor vs
+> servo implementation difference.
+
 | MAINHORS26 Constant | Value | SC-Decode Equivalent | Notes |
 |---|---|---|---|
-| `TURRET_KP` | 1.0 | `TurretConstants.P` (0.08) | Very different PID |
+| `TURRET_KP` | 1.0 | `TurretConstants.P` (0.08) | Motor encoder ticks vs servo angle units |
 | `TURRET_KI` | 0.0 | — | |
 | `TURRET_KD` | 0.235 | — | |
 | `TURRET_MAX_POWER` | 1.0 | — | |
