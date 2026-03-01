@@ -1,118 +1,304 @@
 package org.firstinspires.ftc.teamcode.robot.subsystems;
 
-import static org.firstinspires.ftc.teamcode.utils.constants.TurretConstants.MAX_STEP_PER_LOOP;
-import static org.firstinspires.ftc.teamcode.utils.constants.TurretConstants.P;
-import static org.firstinspires.ftc.teamcode.utils.constants.TurretConstants.SLOPE;
-import static org.firstinspires.ftc.teamcode.utils.constants.TurretConstants.closeTolerance;
-
 import com.arcrobotics.ftclib.command.Subsystem;
-import com.pedropathing.localization.Pose;
-import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.utils.MyTelem;
 import org.firstinspires.ftc.teamcode.utils.constants.TurretConstants;
 
+/**
+ * HORS turret subsystem — DC motor with encoder, IMU-based heading-hold PID,
+ * homing sweep, and freeze mode.
+ */
 public class Turret implements Subsystem {
 
-    public Servo turretLeftServo, turretRightServo;
-    public TurretState state;
-    private double turretCommandPos = TurretConstants.turretForwardPosition;
+    private final DcMotor turretMotor;
+    private final GoBildaPinpointDriver pinpoint; // preferred heading source
 
-    // === Exact mapping from calibration ===
-    // Forward = 0.5  at   0°
-    // 180°    = 0.06 0.44
-    // slope = 0.002444444 (servoPos/degree)
-    // new slope = -0.002444444
+    // PID state
+    private double turretIntegral = 0.0;
+    private int lastErrorTicks = 0;
+    private long lastTimeMs = -1L;
+    private double lastAppliedPower = 0.0;
+    private double lastDerivative = 0.0;
 
-    public Turret(Servo turretLeftServo, Servo turretRightServo) {
-        this.turretLeftServo = turretLeftServo;
-        this.turretRightServo = turretRightServo;
+    // Heading / encoder reference
+    private double headingReferenceRad = 0.0;
+    private int turretEncoderReference = 0;
+    private int encoderOffset = 0;
+
+    // Manual→auto transition
+    private boolean manualActiveLast = false;
+
+    // Homing sweep state
+    private boolean homingMode = false;
+    private boolean homingCommandPrev = false;
+    private boolean homingDirectionPos = true;
+    private int homingTarget = TurretConstants.HOMING_AMPLITUDE_TICKS;
+    private long homingStartMs = 0L;
+
+    // Freeze/hold mode
+    private boolean freezeMode = false;
+    private int freezeHoldTarget = 0;
+
+    // State
+    public TurretState state = TurretState.BACK;
+
+    // Manual control
+    private boolean manualActive = false;
+    private double manualPower = 0.0;
+
+    public Turret(DcMotor turretMotor, GoBildaPinpointDriver pinpoint) {
+        this.turretMotor = turretMotor;
+        this.pinpoint = pinpoint;
+        captureReferences();
+        resetPidState();
     }
 
     public void setState(TurretState state) {
         if (state == null) return;
         this.state = state;
-        switch (state) {
-            case BACK:
-                setServoPos(TurretConstants.turretForwardPosition);
-                break;
-            case MATH:
-                pointToGoalMath();
-                break;
-//            case MATH_CAMERA:
-//                LimelightCamera.TagTarget tag = Robot.getTargetTag();
-//                if (tag == null || !tag.hasTarget) {
-//                    pointToGoalPinPoint(Robot.getEffectiveCoordinates());
-//                } else{
-//                    if (Math.abs(tag.tX) > closeTolerance && Robot.auto) {
-//                        pointToGoalPinPoint(Robot.getEffectiveCoordinates());
-//                        return;
-//                    }
-//                    pointToGoalCamera(tag);
-//                }
-//                break;
+    }
+
+    public void setManualControl(boolean active, double power) {
+        this.manualActive = active;
+        this.manualPower = power;
+    }
+
+    public void commandHomingSweep(boolean command) {
+        if (command && !homingCommandPrev) {
+            homingMode = true;
+            homingDirectionPos = true;
+            homingTarget = TurretConstants.HOMING_AMPLITUDE_TICKS;
+            homingStartMs = System.currentTimeMillis();
         }
-    }
-    private void setServoPos(double pos) {
-        pos = Range.clip(pos, 0, 1);
-        turretCommandPos = pos;
-        turretLeftServo.setPosition(pos);
-        turretRightServo.setPosition(pos);
-    }
-    private void pointToGoalMath() {
-//        double angleDeg = -1 * Robot.getTurretAngle(); //its like opposite idk why but just cuz
-        double angleDeg = Robot.getTurretAngle() - 180.0; //its like opposite idk why but just cuz
-
-        double servoPos = TurretConstants.OFFSET + TurretConstants.SLOPE * angleDeg;
-
-        if (servoPos > 1.0) servoPos = 1.0;
-        if (servoPos < 0.0) servoPos = 0.0;
-        setServoPos(servoPos);
+        homingCommandPrev = command;
     }
 
-    private void pointToGoalPinPoint(Pose cur) {
-        Pose goal = Robot.getGoalPose();
-        double fieldAngle = Math.atan2(
-                goal.getY() - cur.getY(),
-                goal.getX() - cur.getX()
-        );
-        double relAngle = fieldAngle - cur.getHeading() - Math.PI;
-        while (relAngle > Math.PI)  relAngle -= 2 * Math.PI;
-        while (relAngle < -Math.PI) relAngle += 2 * Math.PI;
-        double angleDeg = Math.toDegrees(relAngle);
-        double servoPos = TurretConstants.OFFSET + TurretConstants.SLOPE * angleDeg;
-        if (servoPos > 1.0) servoPos = 1.0;
-        if (servoPos < 0.0) servoPos = 0.0;
-        setServoPos(servoPos);
-        MyTelem.addData("Turret Servo Position", servoPos);
-        MyTelem.addData("Turret Angle", angleDeg);
-    }
+    /**
+     * Main update — call every loop iteration.
+     */
+    public void update() {
+        int currentVirtualTicks = getVirtualEncoderPosition();
 
-    private void pointToGoalCamera(LimelightCamera.TagTarget tag) {
-        if (tag == null || !tag.hasTarget) return;
-        double tX = tag.tX;
-        if (Math.abs(tX) < 0.5){
+        // Homing sweep mode
+        if (homingMode) {
+            runHomingSweep();
+            manualActiveLast = false;
             return;
         }
-        double deltaPos = tX * SLOPE * P;
-        double targetAngleDeg = turretCommandPos - deltaPos;
 
-        double step = Range.clip(targetAngleDeg - turretCommandPos, -MAX_STEP_PER_LOOP, MAX_STEP_PER_LOOP);
-        setServoPos(turretCommandPos + step);
+        // Freeze/hold mode (after homing)
+        if (freezeMode) {
+            int error = freezeHoldTarget - currentVirtualTicks;
+            if (Math.abs(error) <= TurretConstants.SMALL_DEADBAND_TICKS) {
+                turretMotor.setPower(0);
+            } else {
+                double p = TurretConstants.TURRET_KP * error;
+                p = Range.clip(p, -TurretConstants.TURRET_MAX_POWER, TurretConstants.TURRET_MAX_POWER);
+                turretMotor.setPower(p);
+            }
+            manualActiveLast = false;
+            return;
+        }
 
+        // Manual control
+        if (manualActive) {
+            applyManualPower(manualPower, currentVirtualTicks);
+            if (!manualActiveLast) {
+                // Just entered manual
+            }
+            manualActiveLast = true;
+            return;
+        }
 
-        MyTelem.addData("Math Camera", true);
+        // Transitioning from manual→auto: recapture heading reference
+        if (manualActiveLast) {
+            captureReferences();
+            resetPidState();
+            manualActiveLast = false;
+        }
+
+        // Auto heading-hold PID
+        switch (state) {
+            case BACK:
+                // Hold center (0 offset from reference)
+                runHeadingHoldPID(currentVirtualTicks);
+                break;
+            case MATH:
+                // Use math-based aiming through heading-hold
+                runHeadingHoldPID(currentVirtualTicks);
+                break;
+        }
     }
 
+    private void runHeadingHoldPID(int currentVirtualTicks) {
+        long nowMs = System.currentTimeMillis();
+        if (lastTimeMs < 0) lastTimeMs = nowMs;
+        double dtSec = (nowMs - lastTimeMs) / 1000.0;
+        lastTimeMs = nowMs;
+        if (dtSec <= 0 || dtSec > 1.0) dtSec = 0.02;
+
+        // Compute desired encoder ticks from heading change
+        double currentHeading = getHeadingRadians();
+        double headingDelta = normalizeAngle(currentHeading - headingReferenceRad);
+        int desiredTicks = turretEncoderReference
+                + (int)(headingDelta * TurretConstants.TICKS_PER_RADIAN_SCALE
+                * (TurretConstants.TURRET_MAX_POS - TurretConstants.TURRET_MIN_POS) / (2.0 * Math.PI));
+
+        // Clamp to limits
+        desiredTicks = Range.clip(desiredTicks, TurretConstants.TURRET_MIN_POS, TurretConstants.TURRET_MAX_POS);
+
+        int errorTicks = desiredTicks - currentVirtualTicks;
+
+        // Rightward asymmetry damping
+        if (errorTicks > 0 && Math.abs(errorTicks) < TurretConstants.RIGHTWARD_DAMP_ERROR_WINDOW) {
+            errorTicks = (int)(errorTicks * TurretConstants.RIGHTWARD_ENCODER_DAMP);
+        }
+
+        // Deadband
+        if (Math.abs(errorTicks) <= TurretConstants.SMALL_DEADBAND_TICKS) {
+            turretMotor.setPower(0);
+            lastAppliedPower = 0;
+            return;
+        }
+
+        // PID
+        turretIntegral += errorTicks * dtSec;
+        turretIntegral = Range.clip(turretIntegral, -TurretConstants.INTEGRAL_CLAMP, TurretConstants.INTEGRAL_CLAMP);
+
+        double rawDeriv = (dtSec > 0) ? (errorTicks - lastErrorTicks) / dtSec : 0;
+        lastDerivative = TurretConstants.DERIV_FILTER_ALPHA * lastDerivative
+                + (1.0 - TurretConstants.DERIV_FILTER_ALPHA) * rawDeriv;
+
+        double pidOut = TurretConstants.TURRET_KP * errorTicks
+                + TurretConstants.TURRET_KI * turretIntegral
+                + TurretConstants.TURRET_KD * lastDerivative;
+
+        // Feedforward from heading angular velocity
+        double angularVel = (dtSec > 0) ? headingDelta / dtSec : 0;
+        double ff = TurretConstants.FF_GAIN * angularVel;
+
+        double totalPower = pidOut + ff;
+        totalPower = Range.clip(totalPower, -TurretConstants.TURRET_MAX_POWER, TurretConstants.TURRET_MAX_POWER);
+
+        // Enforce hard limits
+        if ((currentVirtualTicks >= TurretConstants.TURRET_MAX_POS && totalPower > 0)
+                || (currentVirtualTicks <= TurretConstants.TURRET_MIN_POS && totalPower < 0)) {
+            totalPower = 0;
+        }
+
+        // Smooth power
+        double smoothed = TurretConstants.POWER_SMOOTH_ALPHA * lastAppliedPower
+                + (1.0 - TurretConstants.POWER_SMOOTH_ALPHA) * totalPower;
+
+        turretMotor.setPower(smoothed);
+        lastAppliedPower = smoothed;
+        lastErrorTicks = errorTicks;
+
+        MyTelem.addData("turret.desired", desiredTicks);
+        MyTelem.addData("turret.virtual", currentVirtualTicks);
+        MyTelem.addData("turret.error", errorTicks);
+    }
+
+    private boolean runHomingSweep() {
+        if (System.currentTimeMillis() - homingStartMs > TurretConstants.HOMING_TIMEOUT_MS) {
+            turretMotor.setPower(0);
+            homingMode = false;
+            return true;
+        }
+
+        int current = getVirtualEncoderPosition();
+
+        if (homingDirectionPos && current >= homingTarget - TurretConstants.HOMING_TARGET_DEADBAND) {
+            homingDirectionPos = false;
+            homingTarget = -TurretConstants.HOMING_AMPLITUDE_TICKS;
+        } else if (!homingDirectionPos && current <= homingTarget + TurretConstants.HOMING_TARGET_DEADBAND) {
+            homingDirectionPos = true;
+            homingTarget = TurretConstants.HOMING_AMPLITUDE_TICKS;
+        }
+
+        double power = homingDirectionPos ? TurretConstants.HOMING_POWER : -TurretConstants.HOMING_POWER;
+
+        if ((current >= TurretConstants.TURRET_MAX_POS && power > 0)
+                || (current <= TurretConstants.TURRET_MIN_POS && power < 0)) {
+            power = 0;
+        }
+
+        turretMotor.setPower(power);
+        return false;
+    }
+
+    private void applyManualPower(double power, int currentVirtualTicks) {
+        if ((currentVirtualTicks >= TurretConstants.TURRET_MAX_POS && power > 0)
+                || (currentVirtualTicks <= TurretConstants.TURRET_MIN_POS && power < 0)) {
+            power = 0;
+        }
+        power = Range.clip(power, -1.0, 1.0);
+        turretMotor.setPower(power);
+    }
+
+    public void captureReferences() {
+        headingReferenceRad = getHeadingRadians();
+        turretEncoderReference = getVirtualEncoderPosition();
+    }
+
+    public void resetPidState() {
+        turretIntegral = 0;
+        lastErrorTicks = 0;
+        lastTimeMs = -1L;
+        lastAppliedPower = 0;
+        lastDerivative = 0;
+    }
+
+    public void recenterAndResume(boolean resetEncoder) {
+        if (resetEncoder) {
+            try {
+                turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                turretMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            } catch (Exception ignored) {}
+            encoderOffset = 0;
+        }
+        captureReferences();
+        resetPidState();
+        freezeMode = false;
+        homingMode = false;
+    }
+
+    public void disable() {
+        turretMotor.setPower(0);
+    }
+
+    private int getVirtualEncoderPosition() {
+        return turretMotor.getCurrentPosition() - encoderOffset;
+    }
+
+    private double getHeadingRadians() {
+        if (pinpoint != null) {
+            try {
+                return -pinpoint.getHeading(AngleUnit.RADIANS);
+            } catch (Exception ignored) {}
+        }
+        return 0.0;
+    }
+
+    private static double normalizeAngle(double angle) {
+        while (angle <= -Math.PI) angle += 2.0 * Math.PI;
+        while (angle > Math.PI) angle -= 2.0 * Math.PI;
+        return angle;
+    }
 
     public TurretState getState() {
         return state;
     }
+
     @Override
-    public void periodic(){
-        setState(state);
+    public void periodic() {
+        update();
     }
 
     public enum TurretState {
