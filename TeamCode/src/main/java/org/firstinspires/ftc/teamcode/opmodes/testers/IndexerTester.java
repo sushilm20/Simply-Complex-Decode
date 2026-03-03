@@ -1,8 +1,6 @@
 package org.firstinspires.ftc.teamcode.opmodes.testers;
 
 import com.acmerobotics.dashboard.config.Config;
-import com.arcrobotics.ftclib.command.InstantCommand;
-import com.arcrobotics.ftclib.command.ParallelCommandGroup;
 import com.arcrobotics.ftclib.gamepad.GamepadEx;
 import com.arcrobotics.ftclib.gamepad.GamepadKeys;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -10,7 +8,6 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.robot.commands.subsystemcommands.IndexerCommand;
-import org.firstinspires.ftc.teamcode.robot.subsystems.Indexer;
 import org.firstinspires.ftc.teamcode.utils.MyTelem;
 
 @Config
