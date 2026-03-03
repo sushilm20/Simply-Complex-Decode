@@ -1,22 +1,18 @@
 package org.firstinspires.ftc.teamcode.robot.subsystems;
 
 import com.arcrobotics.ftclib.command.Subsystem;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
-import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.teamcode.utils.MyTelem;
 import org.firstinspires.ftc.teamcode.utils.constants.IntakeConstants;
 
 public class Intake implements Subsystem {
-    DcMotorEx intakeMotor, intakeMotor2;
+    DcMotor intakeMotor;
     public IntakeState state;
-    public Intake(DcMotorEx intakeMotor, DcMotorEx intakeMotor2){
-        this.intakeMotor2 = intakeMotor2;
+
+    public Intake(DcMotor intakeMotor){
         this.intakeMotor = intakeMotor;
-        intakeMotor2.setCurrentAlert(4.5, CurrentUnit.AMPS);
-        intakeMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        intakeMotor2.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
     public void setState(IntakeState state){
@@ -27,21 +23,16 @@ public class Intake implements Subsystem {
         switch (state){
             case ON:
                 intakeMotor.setPower(IntakeConstants.forwardPower);
-//                if (intakeMotor2.isOverCurrent()) {
-//                    intakeMotor2.setPower(IntakeConstants.offPower);
-//                    MyTelem.addData("someone", "is not stupid af");
-//                }
-//                else {
-                    intakeMotor2.setPower(IntakeConstants.forwardPower);
-//                }
                 break;
             case OFF:
                 intakeMotor.setPower(IntakeConstants.offPower);
-                intakeMotor2.setPower(IntakeConstants.offPower);
+                break;
+            case REVERSE:
+                intakeMotor.setPower(IntakeConstants.backwardPower);
                 break;
             case SOLOFRONT:
+                // Same as ON for single-motor HORS intake
                 intakeMotor.setPower(IntakeConstants.forwardPower);
-                intakeMotor2.setPower(IntakeConstants.offPower);
                 break;
         }
     }
@@ -54,7 +45,7 @@ public class Intake implements Subsystem {
         return state;
     }
     public enum IntakeState{
-        ON, OFF, SOLOFRONT
+        ON, OFF, SOLOFRONT, REVERSE
     }
 
 }

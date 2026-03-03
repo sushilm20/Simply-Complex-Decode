@@ -14,6 +14,7 @@ import com.arcrobotics.ftclib.controller.PIDController;
 import com.pedropathing.localization.Pose;
 import com.pedropathing.pathgen.MathFunctions;
 import com.pedropathing.pathgen.Vector;
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
@@ -21,56 +22,82 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.teamcode.robot.Robot;
 import org.firstinspires.ftc.teamcode.utils.MyTelem;
 import org.firstinspires.ftc.teamcode.utils.constants.ShooterConstants;
-import org.firstinspires.ftc.teamcode.utils.constants.ShooterConstants;
 import org.firstinspires.ftc.teamcode.utils.constants.ShooterMathConstants;
 
 public class Shooter implements Subsystem {
-    DcMotorEx shooterMotor, shooterMotor2;
-    Servo hoodServo;
-    PIDController shooterRPMPID;
+    DcMotorEx shooterMotor;   // primary (encoder)
+    DcMotor shooterMotor2;    // mirror motor
+    Servo leftHoodServo, rightHoodServo;
+
+    // HORS PIDF internal state
+    private double targetRpm = 0;
+    private double lastError = 0.0;
+    private double integralSum = 0.0;
+    private double lastDerivativeEstimate = 0.0;
+    private int lastPos = 0;
+    private double currentRpm = 0.0;
+    private double lastAppliedPower = 0.0;
+    private boolean usingFarCoefficients = false;
+    private long lastUpdateTimeMs = 0;
+
+    // Hood positions
+    private static final double HOOD_MIN = 0.12;
+    private static final double HOOD_MAX = 0.45;
+    private static final double RIGHT_HOOD_CLOSE = 0.16;
+    private static final double RIGHT_HOOD_FAR = 0.26;
+
+    private double leftHoodPos = HOOD_MIN;
+    private double rightHoodPos = RIGHT_HOOD_CLOSE;
 
     public ShooterState state = ShooterState.STOP;
-    public Shooter(DcMotorEx shooterMotor, DcMotorEx shooterMotor2, Servo hoodServo){
-        this.hoodServo = hoodServo;
-        shooterRPMPID = new PIDController(ShooterConstants.kp, ShooterConstants.ki, ShooterConstants.kd);
-        shooterRPMPID.setTolerance(10);
+
+    public Shooter(DcMotorEx shooterMotor, DcMotor shooterMotor2,
+                   Servo leftHoodServo, Servo rightHoodServo) {
         this.shooterMotor = shooterMotor;
         this.shooterMotor2 = shooterMotor2;
+        this.leftHoodServo = leftHoodServo;
+        this.rightHoodServo = rightHoodServo;
+        lastPos = shooterMotor.getCurrentPosition();
+        lastUpdateTimeMs = System.currentTimeMillis();
     }
 
     public void setState(ShooterState state){
         this.state = state;
         switch (state) {
             case CLOSE:
-                currentVelocity = ShooterConstants.closeShootRPM;
-                hoodServoPosition = ShooterConstants.closeHoodAngle;
+                targetRpm = ShooterConstants.closeShootRPM;
+                rightHoodPos = RIGHT_HOOD_CLOSE;
                 break;
             case STOP:
-                currentVelocity = startingVelocity;
-                hoodServoPosition = ShooterConstants.openAngle;
+                targetRpm = startingVelocity;
                 break;
             case TESTING:
-                currentVelocity = tuningTestingRPM;
-                hoodServoPosition = ShooterConstants.tuningTestingHoodPosition;
+                targetRpm = tuningTestingRPM;
                 break;
             case SPEEDING_UP:
-                currentVelocity = ShooterConstants.speedingVelocity;
+                targetRpm = ShooterConstants.speedingVelocity;
+                break;
+            case FAR:
+                targetRpm = ShooterConstants.farShootRPM;
+                rightHoodPos = RIGHT_HOOD_FAR;
                 break;
             case MATH:
                 double hoodAngle = Robot.getHoodAngle();
                 double hoodPos = setHood(hoodAngle);
                 double rpm = getRPM(Robot.getShooterMathRPM(), hoodPos);
                 setHood(hoodAngle);
-                currentVelocity = rpm;
+                targetRpm = rpm;
                 MyTelem.addData("HOOD ANGLE", hoodAngle);
                 MyTelem.addData("HOOD POSITION", hoodServoPosition);
                 MyTelem.addData("RPM", rpm);
                 break;
         }
+        currentVelocity = targetRpm;
     }
+
     public double setHood(double angleRad) {
-        double minAngle = ShooterMathConstants.HOOD_MIN_ANGLE; //0.32
-        double maxAngle = ShooterMathConstants.HOOD_MAX_ANGLE; //0.17
+        double minAngle = ShooterMathConstants.HOOD_MIN_ANGLE;
+        double maxAngle = ShooterMathConstants.HOOD_MAX_ANGLE;
         double servoHigh = 0.17;
         double servoLow = 0.32;
         double loA = Math.min(minAngle, maxAngle);
@@ -79,6 +106,7 @@ public class Shooter implements Subsystem {
         hoodServoPosition = servoLow + (angleRad - loA) * (servoHigh - servoLow) / (hiA - loA);
         return hoodServoPosition;
     }
+
     public double getRPM(double velocity, double hood){
         MyTelem.addData("VELOCITY", velocity);
         double hoodMultiplier = 2.79242 * hood * hood - 2.05502 * hood + 1.29534;
@@ -91,54 +119,154 @@ public class Shooter implements Subsystem {
     public double ticksPerSecToRPM(double tps){
         return tps * 60.0 / ShooterConstants.TICKS_PER_REV;
     }
-    public void setShooterPIDPower(double targetRPM){
-        double topVelocity = Math.abs(shooterMotor.getVelocity());
-        double currentRPM = (ticksPerSecToRPM(topVelocity));
 
-        shooterRPMPID.setPID(ShooterConstants.kp, ShooterConstants.ki, ShooterConstants.kd);
+    /**
+     * HORS-style PIDF update with close/far coefficient switching and voltage-compensated FF.
+     */
+    private void updatePIDF() {
+        long nowMs = System.currentTimeMillis();
+        double dtSeconds = (nowMs - lastUpdateTimeMs) / 1000.0;
+        lastUpdateTimeMs = nowMs;
+        if (dtSeconds <= 0 || dtSeconds > 1.0) dtSeconds = 0.02;
 
-        double power = shooterRPMPID.calculate(currentRPM, targetRPM);
-        power += (targetRPM > 0) ? (ShooterConstants.kf * (targetRPM / ShooterConstants.MAX_RPM)) : 0.0;
-        power = Range.clip(power, 0, 1);
+        // Select coefficients based on target RPM
+        usingFarCoefficients = (targetRpm >= ShooterConstants.RPM_SWITCH_THRESHOLD);
+        double kP, kI, kD, kF, integralLimit, derivAlpha, rpmAlpha, powerAlpha, refVoltage, refMaxTPS;
+        if (usingFarCoefficients) {
+            kP = ShooterConstants.FAR_kP; kI = ShooterConstants.FAR_kI;
+            kD = ShooterConstants.FAR_kD; kF = ShooterConstants.FAR_kF;
+            integralLimit = ShooterConstants.FAR_integralLimit;
+            derivAlpha = ShooterConstants.FAR_derivativeAlpha;
+            rpmAlpha = ShooterConstants.FAR_rpmFilterAlpha;
+            powerAlpha = ShooterConstants.FAR_powerSmoothingAlpha;
+            refVoltage = ShooterConstants.FAR_ffReferenceVoltage;
+            refMaxTPS = ShooterConstants.FAR_ffReferenceMaxTicksPerSec;
+        } else {
+            kP = ShooterConstants.CLOSE_kP; kI = ShooterConstants.CLOSE_kI;
+            kD = ShooterConstants.CLOSE_kD; kF = ShooterConstants.CLOSE_kF;
+            integralLimit = ShooterConstants.CLOSE_integralLimit;
+            derivAlpha = ShooterConstants.CLOSE_derivativeAlpha;
+            rpmAlpha = ShooterConstants.CLOSE_rpmFilterAlpha;
+            powerAlpha = ShooterConstants.CLOSE_powerSmoothingAlpha;
+            refVoltage = ShooterConstants.CLOSE_ffReferenceVoltage;
+            refMaxTPS = ShooterConstants.CLOSE_ffReferenceMaxTicksPerSec;
+        }
 
-        double currentVoltage = Robot.voltage;
-        shooterMotor.setPower(power * 13 / currentVoltage);
-        shooterMotor2.setPower(power * 13 / currentVoltage);
+        // Measure current RPM
+        double ticksPerSecond;
+        try {
+            ticksPerSecond = shooterMotor.getVelocity();
+            lastPos = shooterMotor.getCurrentPosition();
+        } catch (Exception e) {
+            int pos = shooterMotor.getCurrentPosition();
+            int delta = pos - lastPos;
+            lastPos = pos;
+            ticksPerSecond = delta / dtSeconds;
+        }
+        double rawRpm = (ticksPerSecond * 60.0) / ShooterConstants.TICKS_PER_REV;
+        currentRpm = rpmAlpha * currentRpm + (1.0 - rpmAlpha) * rawRpm;
 
-        MyTelem.addData("Shooter Current RPM", currentRPM);
-        MyTelem.addData("Shooter Target RPM", targetRPM);
+        if (targetRpm <= 0) {
+            shooterMotor.setPower(0);
+            if (shooterMotor2 != null) shooterMotor2.setPower(0);
+            integralSum = 0;
+            lastError = 0;
+            lastAppliedPower = 0;
+            return;
+        }
+
+        double error = targetRpm - currentRpm;
+
+        // Integral with anti-windup
+        integralSum += error * dtSeconds;
+        if (integralSum > integralLimit) integralSum = integralLimit;
+        if (integralSum < -integralLimit) integralSum = -integralLimit;
+
+        // Filtered derivative
+        double rawDeriv = (dtSeconds > 0) ? (error - lastError) / dtSeconds : 0;
+        lastDerivativeEstimate = derivAlpha * lastDerivativeEstimate + (1.0 - derivAlpha) * rawDeriv;
+
+        // PID output
+        double pidOut = kP * error + kI * integralSum + kD * lastDerivativeEstimate;
+
+        // Voltage-compensated feedforward
+        double batteryV = Robot.voltage;
+        if (batteryV < 1.0) batteryV = 12.0;
+        double targetTPS = targetRpm * ShooterConstants.TICKS_PER_REV / 60.0;
+        double ff = kF * (targetTPS / refMaxTPS) * (refVoltage / batteryV);
+
+        double rawOut = pidOut + ff;
+        rawOut = Range.clip(rawOut, 0, 1);
+
+        // Power smoothing
+        double smoothedOut = powerAlpha * lastAppliedPower + (1.0 - powerAlpha) * rawOut;
+        smoothedOut = Range.clip(smoothedOut, 0, 1);
+
+        shooterMotor.setPower(smoothedOut);
+        if (shooterMotor2 != null) shooterMotor2.setPower(smoothedOut);
+
+        lastAppliedPower = smoothedOut;
+        lastError = error;
+
+        MyTelem.addData("Shooter Current RPM", currentRpm);
+        MyTelem.addData("Shooter Target RPM", targetRpm);
+        MyTelem.addData("PIDF Mode", usingFarCoefficients ? "FAR" : "CLOSE");
     }
+
+    public void setShooterPIDPower(double targetRPM){
+        // Legacy method — just update targetRpm, actual PIDF runs in periodic()
+        this.targetRpm = targetRPM;
+    }
+
     public boolean shooterAtRPM(){
-        return shooterRPMPID.getPositionError() <= 100;
+        double tolerance = usingFarCoefficients ?
+                ShooterConstants.FAR_rpmTolerance : ShooterConstants.CLOSE_rpmTolerance;
+        return Math.abs(targetRpm - currentRpm) <= tolerance;
     }
 
     public boolean atRPM() {
         return shooterAtRPM();
     }
 
+    public boolean isUsingFarCoefficients() {
+        return usingFarCoefficients;
+    }
+
+    public double getCurrentRPM() {
+        return currentRpm;
+    }
+
+    public double getTargetRPM() {
+        return targetRpm;
+    }
+
     public ShooterState getState(){
         return state;
     }
 
+    // Hood control methods
+    public void setRightHoodPosition(double pos) {
+        rightHoodPos = Range.clip(pos, HOOD_MIN, HOOD_MAX);
+    }
+
+    public void setLeftHoodPosition(double pos) {
+        leftHoodPos = Range.clip(pos, HOOD_MIN, HOOD_MAX);
+    }
+
+    public double getLeftHoodPos() { return leftHoodPos; }
+    public double getRightHoodPos() { return rightHoodPos; }
+
     @Override
     public void periodic() {
         setState(state);
-        shooterRPMPID.setPID(ShooterConstants.kp, ShooterConstants.ki, ShooterConstants.kd);
-//        if (Robot.auto && ShooterConstants.karthikstfu) {
-//            hoodServo.setPosition(0.32);
-//        }
-//        else {
-            hoodServo.setPosition(hoodServoPosition);
-//        }
-//        if (karthikstfu && Robot.auto) {
-//            setShooterPIDPower(speedingVelocity);
-//        }
-//        else {
-            setShooterPIDPower(currentVelocity);
-//        }
+        // Apply hood positions
+        if (leftHoodServo != null) leftHoodServo.setPosition(leftHoodPos);
+        if (rightHoodServo != null) rightHoodServo.setPosition(rightHoodPos);
+        // Run PIDF controller
+        updatePIDF();
     }
 
     public enum ShooterState {
-        CLOSE, STOP, TESTING, MATH, SPEEDING_UP
+        CLOSE, STOP, TESTING, MATH, SPEEDING_UP, FAR
     }
 }
